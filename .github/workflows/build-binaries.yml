@@ -1,0 +1,164 @@
+name: Build Pre-built Binaries
+
+on:
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      jolt_version:
+        description: 'Jolt Physics version/commit to build'
+        required: false
+        default: 'latest'
+  push:
+    paths:
+      - 'wrapper/**'
+      - 'scripts/**'
+      - '.github/workflows/build-binaries.yml'
+
+jobs:
+  build-darwin-arm64:
+    runs-on: macos-14  # macOS ARM64 runner
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Clone Jolt Physics
+        run: |
+          git clone https://github.com/jrouwe/JoltPhysics.git
+          cd JoltPhysics
+          if [ "${{ github.event.inputs.jolt_version }}" != "latest" ] && [ -n "${{ github.event.inputs.jolt_version }}" ]; then
+            git checkout ${{ github.event.inputs.jolt_version }}
+          fi
+          git log -1 --oneline
+          git describe --tags --always || echo "No tags"
+
+      - name: Build darwin/arm64 binaries
+        run: |
+          export JOLT_SRC=$PWD/JoltPhysics
+          ./scripts/build-libs.sh darwin_arm64
+
+      - name: Upload darwin/arm64 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: darwin-arm64-binaries
+          path: lib/darwin_arm64/
+          retention-days: 7
+
+  build-linux-amd64:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Clone Jolt Physics
+        run: |
+          git clone https://github.com/jrouwe/JoltPhysics.git
+          cd JoltPhysics
+          if [ "${{ github.event.inputs.jolt_version }}" != "latest" ] && [ -n "${{ github.event.inputs.jolt_version }}" ]; then
+            git checkout ${{ github.event.inputs.jolt_version }}
+          fi
+          git log -1 --oneline
+          git describe --tags --always || echo "No tags"
+
+      - name: Build linux/amd64 binaries
+        run: |
+          export JOLT_SRC=$PWD/JoltPhysics
+          ./scripts/build-libs.sh linux_amd64
+
+      - name: Upload linux/amd64 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-amd64-binaries
+          path: lib/linux_amd64/
+          retention-days: 7
+
+  test-binaries:
+    needs: [build-darwin-arm64, build-linux-amd64]
+    strategy:
+      matrix:
+        os: [macos-14, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.3'
+
+      - name: Download darwin/arm64 binaries
+        if: matrix.os == 'macos-14'
+        uses: actions/download-artifact@v4
+        with:
+          name: darwin-arm64-binaries
+          path: lib/darwin_arm64/
+
+      - name: Download linux/amd64 binaries
+        if: matrix.os == 'ubuntu-24.04'
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-amd64-binaries
+          path: lib/linux_amd64/
+
+      - name: Test example
+        run: go run example/main.go
+
+  # Create GitHub release and upload binaries
+  create-release:
+    needs: [test-binaries]
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download darwin/arm64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: darwin-arm64-binaries
+          path: darwin_arm64/
+
+      - name: Download linux/amd64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-amd64-binaries
+          path: linux_amd64/
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+
+          # Rename files to include platform prefix for download.go
+          cp darwin_arm64/libJolt.a release-assets/darwin_arm64_libJolt.a
+          cp darwin_arm64/libjolt_wrapper.a release-assets/darwin_arm64_libjolt_wrapper.a
+          cp linux_amd64/libJolt.a release-assets/linux_amd64_libJolt.a
+          cp linux_amd64/libjolt_wrapper.a release-assets/linux_amd64_libjolt_wrapper.a
+
+          # Show what we're uploading
+          ls -lh release-assets/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v0.2.0
+          name: Release v0.2.0
+          body: |
+            Pre-built Jolt Physics binaries for Go bindings.
+
+            **Supported Platforms:**
+            - macOS ARM64 (Apple Silicon)
+            - Linux x86-64
+
+            These binaries are automatically downloaded when you import the package.
+            No manual download needed!
+          draft: false
+          prerelease: false
+          files: |
+            release-assets/darwin_arm64_libJolt.a
+            release-assets/darwin_arm64_libjolt_wrapper.a
+            release-assets/linux_amd64_libJolt.a
+            release-assets/linux_amd64_libjolt_wrapper.a
