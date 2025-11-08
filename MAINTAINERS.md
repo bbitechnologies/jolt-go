@@ -8,7 +8,7 @@ jolt-go ships with pre-built static libraries for:
 - `darwin/arm64` (macOS Apple Silicon)
 - `linux/amd64` (Linux x86-64)
 
-These binaries are hosted on GitHub Releases and automatically downloaded when users import the package.
+These binaries are committed to the repository in the `lib/` directory, ensuring the package works immediately with `go get`.
 
 **Current Jolt Physics Version:** v5.4.0 (commit: be9036cf)
 
@@ -122,77 +122,41 @@ When updating to a new Jolt Physics version:
 
 4. **Update this file** with the new version number at the top
 
-5. **Create a GitHub Release:**
-   - Use the GitHub Actions workflow (recommended - see CI/CD section below)
-   - Or manually create a release and upload the binaries
-
-   The binaries will be automatically downloaded by users on first import.
+5. **Commit and tag the binaries:**
+   ```bash
+   git add lib/
+   git commit -m "Update binaries to Jolt Physics v5.5.0"
+   git tag v0.2.0
+   git push origin main --tags
+   ```
 
 ## CI/CD
 
 ### GitHub Actions
 
-The repository has a GitHub Actions workflow (`.github/workflows/build-binaries.yml`) that automatically builds binaries and creates GitHub releases.
+The repository has a GitHub Actions workflow (`.github/workflows/build-binaries.yml`) that automatically builds and tests binaries on both platforms.
 
 ### Release Process
 
-#### Option 1: Tag-Based Release (Recommended)
-
-Push a version tag to automatically create a release with the latest Jolt Physics:
-
-1. **Update `download.go` line 14** with the new release tag:
-   ```go
-   releaseTag = "v0.1.0"  // Update this
-   ```
-
-2. **Commit and push** this change:
+1. **Rebuild binaries** (if updating Jolt Physics version):
    ```bash
-   git add download.go
-   git commit -m "Bump version to v0.1.0"
-   git push
+   ./scripts/build-libs.sh all
+   go run example/main.go  # Test locally
    ```
 
-3. **Create and push the version tag**:
+2. **Commit the binaries:**
    ```bash
-   git tag v0.1.0
-   git push origin v0.1.0
+   git add lib/
+   git commit -m "Update to Jolt Physics v5.5.0"
    ```
 
-This will:
-1. Build binaries for both platforms
-2. Run tests on both platforms
-3. Create a GitHub Release with tag `v0.1.0`
-4. Use latest Jolt Physics version
-5. Upload binaries to the release
+3. **Create and push a version tag:**
+   ```bash
+   git tag v0.2.0
+   git push origin main --tags
+   ```
 
-#### Option 2: Manual Release (Ad-hoc)
-
-Use this when you need to specify a specific Jolt Physics version or rebuild an existing release:
-
-1. Go to Actions tab on GitHub
-2. Select "Build Pre-built Binaries" workflow
-3. Click "Run workflow"
-4. Fill in:
-   - **release_tag**: e.g., `v0.1.0` (required)
-   - **jolt_version**: e.g., `v5.4.0`, commit hash, or `latest` (optional, defaults to latest)
-5. Wait for workflow to complete
-6. A new GitHub Release will be created with binaries attached
-
-### Build Triggers
-
-- **Version tags** (`v*`): Builds, tests, and creates release
-- **Manual workflow dispatch**: Builds, tests, and creates release with specified versions
-- **Changes to `wrapper/`, `scripts/`, or workflow file**: Builds and tests only (no release)
-
-### Release Assets
-
-After the workflow completes, these files are uploaded to the GitHub Release:
-- `darwin_arm64_libJolt.a`
-- `darwin_arm64_libjolt_wrapper.a`
-- `linux_amd64_libJolt.a`
-- `linux_amd64_libjolt_wrapper.a`
-
-Users automatically download these binaries on first `go get`.
+The GitHub Actions workflow will automatically build and test on both platforms when you push a tag.
 
 ## Troubleshooting
 
@@ -227,13 +191,6 @@ sudo usermod -aG docker $USER
 # Then logout and login again
 ```
 
-### Binary download fails for users
-
-If users report download failures:
-1. Check that the GitHub Release exists and has all 4 binary files
-2. Verify the release tag matches the version in `download.go` (`releaseTag = "..."`)
-3. Check that file names match the expected format: `{platform}_{filename}`
-4. Users can manually download binaries from GitHub Releases and place them in `lib/{platform}/`
 
 ## Architecture Notes
 

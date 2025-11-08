@@ -1,4 +1,4 @@
-name: Build Pre-built Binaries
+name: Build and Test Binaries
 
 on:
   push:
@@ -7,12 +7,15 @@ on:
     paths:
       - 'wrapper/**'
       - 'scripts/**'
+      - 'lib/**'
       - '.github/workflows/build-binaries.yml'
+  pull_request:
+    paths:
+      - 'wrapper/**'
+      - 'scripts/**'
+      - 'lib/**'
   workflow_dispatch:  # Manual trigger
     inputs:
-      release_tag:
-        description: 'Release tag (e.g., v0.1.0)'
-        required: true
       jolt_version:
         description: 'Jolt Physics version/commit to build (e.g., v5.4.0, latest, or commit hash)'
         required: false
@@ -116,93 +119,3 @@ jobs:
       - name: Test example
         run: go run example/main.go
 
-  # Create GitHub release and upload binaries
-  create-release:
-    needs: [test-binaries]
-    runs-on: ubuntu-24.04
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Determine release tag and Jolt version
-        id: release_info
-        run: |
-          # Determine release tag
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            RELEASE_TAG="${{ github.event.inputs.release_tag }}"
-          else
-            RELEASE_TAG="${{ github.ref_name }}"
-          fi
-          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
-          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
-          echo "Release tag: $RELEASE_TAG"
-
-          # Get Jolt version info
-          git clone https://github.com/jrouwe/JoltPhysics.git
-          cd JoltPhysics
-          if [ "${{ github.event.inputs.jolt_version }}" != "latest" ] && [ -n "${{ github.event.inputs.jolt_version }}" ]; then
-            git checkout ${{ github.event.inputs.jolt_version }}
-          fi
-          JOLT_VERSION=$(git describe --tags --always || echo "unknown")
-          JOLT_COMMIT=$(git rev-parse --short HEAD)
-          echo "JOLT_VERSION=$JOLT_VERSION" >> $GITHUB_ENV
-          echo "JOLT_COMMIT=$JOLT_COMMIT" >> $GITHUB_ENV
-          echo "jolt_version=$JOLT_VERSION" >> $GITHUB_OUTPUT
-          echo "Jolt version: $JOLT_VERSION (commit: $JOLT_COMMIT)"
-
-      - name: Download darwin/arm64 binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: darwin-arm64-binaries
-          path: darwin_arm64/
-
-      - name: Download linux/amd64 binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-amd64-binaries
-          path: linux_amd64/
-
-      - name: Prepare release assets
-        run: |
-          mkdir -p release-assets
-
-          # Rename files to include platform prefix for download.go
-          cp darwin_arm64/libJolt.a release-assets/darwin_arm64_libJolt.a
-          cp darwin_arm64/libjolt_wrapper.a release-assets/darwin_arm64_libjolt_wrapper.a
-          cp linux_amd64/libJolt.a release-assets/linux_amd64_libJolt.a
-          cp linux_amd64/libjolt_wrapper.a release-assets/linux_amd64_libjolt_wrapper.a
-
-          # Show what we're uploading
-          ls -lh release-assets/
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          name: Release ${{ env.RELEASE_TAG }}
-          body: |
-            Pre-built Jolt Physics binaries for jolt-go ${{ env.RELEASE_TAG }}.
-
-            **Jolt Physics Version:** ${{ env.JOLT_VERSION }} (commit: ${{ env.JOLT_COMMIT }})
-
-            **Supported Platforms:**
-            - macOS ARM64 (Apple Silicon)
-            - Linux x86-64
-
-            These binaries are automatically downloaded when you import the package.
-            No manual download needed!
-
-            ## Installation
-            ```bash
-            go get github.com/bbitechnologies/jolt-go@${{ env.RELEASE_TAG }}
-            ```
-          draft: false
-          prerelease: false
-          files: |
-            release-assets/darwin_arm64_libJolt.a
-            release-assets/darwin_arm64_libjolt_wrapper.a
-            release-assets/linux_amd64_libJolt.a
-            release-assets/linux_amd64_libjolt_wrapper.a

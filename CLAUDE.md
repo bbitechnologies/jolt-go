@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Go bindings for Jolt Physics (C++ engine). Pre-built binaries auto-download on first import. No user compilation required.
+Go bindings for Jolt Physics (C++ engine). Pre-built binaries included in repository. No user compilation required.
 
 **Architecture:** Go → CGO → C Wrapper (`wrapper/`) → Jolt Physics C++
 
@@ -12,13 +12,12 @@ Go bindings for Jolt Physics (C++ engine). Pre-built binaries auto-download on f
 
 - `jolt.go` - Main Go API with CGO declarations
 - `jolt_{platform}_{arch}.go` - Platform-specific linker flags
-- `download.go` - Auto-downloads binaries from GitHub Releases
 - `wrapper/jolt_wrapper.{cpp,h}` - C wrapper around Jolt C++ API (opaque pointers)
-- `lib/{platform}/` - Pre-built static libraries (libJolt.a, libjolt_wrapper.a)
+- `lib/{platform}/` - Pre-built static libraries (libJolt.a, libjolt_wrapper.a), committed to git
 - `scripts/build-libs.sh` - Builds binaries for all platforms
 - `scripts/docker/` - Docker build environment for Linux
 - `example/main.go` - Falling sphere demo
-- `.github/workflows/build-binaries.yml` - CI/CD for releases
+- `.github/workflows/build-binaries.yml` - CI/CD for building and testing
 
 ## Core Values
 
@@ -49,8 +48,8 @@ Go bindings for Jolt Physics (C++ engine). Pre-built binaries auto-download on f
 3. Test: `go run example/main.go`
 4. Update version number in MAINTAINERS.md (line 13)
 5. Update README.md if new features exposed (line 10)
-6. Create GitHub Release with new binaries
-7. Update `download.go` with new release tag
+6. Commit binaries: `git add lib/ && git commit -m "Update to Jolt vX.X.X"`
+7. Tag release: `git tag vX.X.X && git push origin main --tags`
 
 ### When Changing Build System (`scripts/`)
 1. Test darwin build: `./scripts/build-libs.sh darwin_arm64`

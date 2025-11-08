@@ -18,25 +18,7 @@ Go bindings for [Jolt Physics](https://github.com/jrouwe/JoltPhysics), a fast an
 go get github.com/bbitechnologies/jolt-go
 ```
 
-That's it! Pre-built binaries are automatically downloaded on first import for macOS ARM64 and Linux x86-64.
-
-### How It Works
-
-When you first import the package, it automatically:
-1. Checks if the required binaries exist in your local `lib/` directory
-2. If missing, downloads them from the latest GitHub release
-3. Caches them locally for future use
-
-No manual steps needed! The binaries are downloaded once and reused.
-
-### Manual Installation (Optional)
-
-If automatic download fails, you can manually download binaries:
-
-1. Download the binaries for your platform from [GitHub Releases](https://github.com/bbitechnologies/jolt-go/releases)
-2. Place them in the appropriate directory:
-   - macOS ARM64: `lib/darwin_arm64/`
-   - Linux x86-64: `lib/linux_amd64/`
+That's it! Pre-built binaries are included in the repository, so no compilation is required.
 
 ## Quick Start
 

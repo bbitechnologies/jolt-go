@@ -1,2 +1,2 @@
-# Compiled C/C++ binaries for Jolt Physics Go bindings
-lib/
+# Pre-built binaries are committed to ensure the package works as a Go module dependency
+# lib/ is intentionally NOT ignored
