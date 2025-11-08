@@ -11,7 +11,7 @@ import (
 
 const (
 	githubRepo = "bbitechnologies/jolt-go"
-	releaseTag = "v0.2.0" // Update this when creating new releases
+	releaseTag = "v0.1.0" // Update this when creating new releases
 	libDir     = "lib"
 )
 

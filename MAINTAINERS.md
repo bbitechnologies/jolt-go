@@ -134,30 +134,65 @@ When updating to a new Jolt Physics version:
 
 The repository has a GitHub Actions workflow (`.github/workflows/build-binaries.yml`) that automatically builds binaries and creates GitHub releases.
 
-**Manual Trigger (Recommended for Releases):**
+### Release Process
+
+#### Option 1: Tag-Based Release (Recommended)
+
+Push a version tag to automatically create a release with the latest Jolt Physics:
+
+1. **Update `download.go` line 14** with the new release tag:
+   ```go
+   releaseTag = "v0.1.0"  // Update this
+   ```
+
+2. **Commit and push** this change:
+   ```bash
+   git add download.go
+   git commit -m "Bump version to v0.1.0"
+   git push
+   ```
+
+3. **Create and push the version tag**:
+   ```bash
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
+
+This will:
+1. Build binaries for both platforms
+2. Run tests on both platforms
+3. Create a GitHub Release with tag `v0.1.0`
+4. Use latest Jolt Physics version
+5. Upload binaries to the release
+
+#### Option 2: Manual Release (Ad-hoc)
+
+Use this when you need to specify a specific Jolt Physics version or rebuild an existing release:
+
 1. Go to Actions tab on GitHub
 2. Select "Build Pre-built Binaries" workflow
 3. Click "Run workflow"
-4. Optionally specify a Jolt version/commit
+4. Fill in:
+   - **release_tag**: e.g., `v0.1.0` (required)
+   - **jolt_version**: e.g., `v5.4.0`, commit hash, or `latest` (optional, defaults to latest)
 5. Wait for workflow to complete
 6. A new GitHub Release will be created with binaries attached
 
-**Automatic Trigger:**
-- Workflow runs automatically when files in `wrapper/` or `scripts/` are modified (builds only, no release)
+### Build Triggers
 
-### Release Process
+- **Version tags** (`v*`): Builds, tests, and creates release
+- **Manual workflow dispatch**: Builds, tests, and creates release with specified versions
+- **Changes to `wrapper/`, `scripts/`, or workflow file**: Builds and tests only (no release)
 
-After the workflow completes:
-1. **Binaries are built and tested** across both platforms
-2. **GitHub Release is created** (if triggered manually via workflow_dispatch)
-3. **Binaries are uploaded** as release assets with platform-specific names:
-   - `darwin_arm64_libJolt.a`
-   - `darwin_arm64_libjolt_wrapper.a`
-   - `linux_amd64_libJolt.a`
-   - `linux_amd64_libjolt_wrapper.a`
-4. **Users automatically download** these binaries on first `go get`
+### Release Assets
 
-**Note:** Update the version in `.github/workflows/build-binaries.yml` and `download.go` when creating a new release.
+After the workflow completes, these files are uploaded to the GitHub Release:
+- `darwin_arm64_libJolt.a`
+- `darwin_arm64_libjolt_wrapper.a`
+- `linux_amd64_libJolt.a`
+- `linux_amd64_libjolt_wrapper.a`
+
+Users automatically download these binaries on first `go get`.
 
 ## Troubleshooting
 
@@ -196,7 +231,7 @@ sudo usermod -aG docker $USER
 
 If users report download failures:
 1. Check that the GitHub Release exists and has all 4 binary files
-2. Verify the release tag matches the version in `download.go` (currently `v0.2.0`)
+2. Verify the release tag matches the version in `download.go` (`releaseTag = "..."`)
 3. Check that file names match the expected format: `{platform}_{filename}`
 4. Users can manually download binaries from GitHub Releases and place them in `lib/{platform}/`
 
