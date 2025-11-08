@@ -127,20 +127,6 @@ Jolt Physics is one of the fastest physics engines available:
 - Continuous collision detection (CCD)
 - Stable and deterministic simulation
 
-## Docker Support
-
-Run the example in Docker:
-
-```bash
-# Build for your platform
-docker build -t jolt-go .
-
-# Run
-docker run --rm jolt-go
-```
-
-The Dockerfile supports both `linux/arm64` and `linux/amd64` via multi-platform builds.
-
 ## Contributing
 
 Contributions are welcome! Please see [MAINTAINERS.md](MAINTAINERS.md) for:
