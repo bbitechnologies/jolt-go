@@ -33,9 +33,43 @@ type BodyID struct {
 	handle C.JoltBodyID
 }
 
+// Destroy frees the body ID
+func (b *BodyID) Destroy() {
+	C.JoltDestroyBodyID(b.handle)
+}
+
 // Vec3 represents a 3D vector
 type Vec3 struct {
 	X, Y, Z float32
+}
+
+// GroundState indicates the ground contact state of a CharacterVirtual
+type GroundState int
+
+const (
+	// GroundStateOnGround - Character is on the ground and can move freely
+	GroundStateOnGround GroundState = 0
+	// GroundStateOnSteepGround - Character is on a slope too steep to climb
+	GroundStateOnSteepGround GroundState = 1
+	// GroundStateNotSupported - Character is touching an object but not supported (should fall)
+	GroundStateNotSupported GroundState = 2
+	// GroundStateInAir - Character is in the air and not touching anything
+	GroundStateInAir GroundState = 3
+)
+
+func (gs GroundState) String() string {
+	switch gs {
+	case GroundStateOnGround:
+		return "OnGround"
+	case GroundStateOnSteepGround:
+		return "OnSteepGround"
+	case GroundStateNotSupported:
+		return "NotSupported"
+	case GroundStateInAir:
+		return "InAir"
+	default:
+		return "Unknown"
+	}
 }
 
 // Init initializes Jolt Physics (call once at startup)
@@ -74,6 +108,17 @@ func (ps *PhysicsSystem) GetBodyInterface() *BodyInterface {
 	return &BodyInterface{handle: handle}
 }
 
+// GetPosition returns the current position of a body
+func (bi *BodyInterface) GetPosition(bodyID *BodyID) Vec3 {
+	var x, y, z C.float
+	C.JoltGetBodyPosition(bi.handle, bodyID.handle, &x, &y, &z)
+	return Vec3{
+		X: float32(x),
+		Y: float32(y),
+		Z: float32(z),
+	}
+}
+
 // CreateSphere creates a sphere body
 // isDynamic: true = affected by forces, false = static/immovable
 func (bi *BodyInterface) CreateSphere(radius float32, position Vec3, isDynamic bool) *BodyID {
@@ -94,13 +139,95 @@ func (bi *BodyInterface) CreateSphere(radius float32, position Vec3, isDynamic b
 	return &BodyID{handle: handle}
 }
 
-// GetPosition returns the current position of a body
-func (bi *BodyInterface) GetPosition(bodyID *BodyID) Vec3 {
+// CreateBox creates a box body
+// halfExtent: half-size of the box in each dimension (e.g., Vec3{5,0.5,5} creates 10x1x10 box)
+// isDynamic: true = affected by forces, false = static/immovable
+func (bi *BodyInterface) CreateBox(halfExtent Vec3, position Vec3, isDynamic bool) *BodyID {
+	dynamic := C.int(0)
+	if isDynamic {
+		dynamic = C.int(1)
+	}
+
+	handle := C.JoltCreateBox(
+		bi.handle,
+		C.float(halfExtent.X),
+		C.float(halfExtent.Y),
+		C.float(halfExtent.Z),
+		C.float(position.X),
+		C.float(position.Y),
+		C.float(position.Z),
+		dynamic,
+	)
+
+	return &BodyID{handle: handle}
+}
+
+// CreateCharacterVirtual creates a virtual character at the specified initial position
+func (ps *PhysicsSystem) CreateCharacterVirtual(position Vec3) *CharacterVirtual {
+	handle := C.JoltCreateCharacterVirtual(
+		ps.handle,
+		C.float(position.X),
+		C.float(position.Y),
+		C.float(position.Z),
+	)
+	return &CharacterVirtual{handle: handle, ps: ps}
+}
+
+// CharacterVirtual represents a virtual character in the physics world
+type CharacterVirtual struct {
+	handle C.JoltCharacterVirtual
+	ps     *PhysicsSystem
+}
+
+// ExtendedUpdate advances the character simulation with combined movement logic
+// Combines Update, StickToFloor, and WalkStairs into a unified operation
+// deltaTime: duration of simulation step in seconds
+// gravity: acceleration vector (e.g., Vec3{0, -9.81, 0} for Earth gravity)
+func (cv *CharacterVirtual) ExtendedUpdate(deltaTime float32, gravity Vec3) {
+	C.JoltCharacterVirtualExtendedUpdate(
+		cv.handle,
+		cv.ps.handle,
+		C.float(deltaTime),
+		C.float(gravity.X),
+		C.float(gravity.Y),
+		C.float(gravity.Z),
+	)
+}
+
+// SetLinearVelocity sets the character's linear velocity
+func (cv *CharacterVirtual) SetLinearVelocity(velocity Vec3) {
+	C.JoltCharacterVirtualSetLinearVelocity(
+		cv.handle,
+		C.float(velocity.X),
+		C.float(velocity.Y),
+		C.float(velocity.Z),
+	)
+}
+
+// GetPosition returns the current position of the character
+func (cv *CharacterVirtual) GetPosition() Vec3 {
 	var x, y, z C.float
-	C.JoltGetBodyPosition(bi.handle, bodyID.handle, &x, &y, &z)
+	C.JoltCharacterVirtualGetPosition(cv.handle, &x, &y, &z)
 	return Vec3{
 		X: float32(x),
 		Y: float32(y),
 		Z: float32(z),
 	}
+}
+
+// Destroy frees the character resources
+func (cv *CharacterVirtual) Destroy() {
+	C.JoltDestroyCharacterVirtual(cv.handle)
+}
+
+// GetGroundState returns the current ground contact state
+func (cv *CharacterVirtual) GetGroundState() GroundState {
+	state := C.JoltCharacterVirtualGetGroundState(cv.handle)
+	return GroundState(state)
+}
+
+// IsSupported returns true if the character is on ground or steep ground (not falling)
+func (cv *CharacterVirtual) IsSupported() bool {
+	result := C.JoltCharacterVirtualIsSupported(cv.handle)
+	return result != 0
 }

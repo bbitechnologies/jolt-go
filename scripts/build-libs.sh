@@ -100,7 +100,10 @@ build_darwin_arm64() {
     cd "$WRAPPER_DIR"
     clang++ -std=c++17 \
         -I"$JOLT_SRC" \
+        -DNDEBUG \
         -DJPH_DISABLE_CUSTOM_ALLOCATOR \
+        -DJPH_PROFILE_ENABLED \
+        -DJPH_DEBUG_RENDERER \
         -DJPH_OBJECT_STREAM \
         -c jolt_wrapper.cpp \
         -o jolt_wrapper.o

@@ -10,7 +10,7 @@ jolt-go ships with pre-built static libraries for:
 
 These binaries are committed to the repository in the `lib/` directory, ensuring the package works immediately with `go get`.
 
-**Current Jolt Physics Version:** v5.4.0 (commit: be9036cf)
+**Current Jolt Physics Version:** v5.4.0
 
 ## Prerequisites
 
@@ -79,14 +79,20 @@ go run example/main.go
 
 Expected output:
 ```
-Simulating falling sphere...
-Frame   0: Y = 20.00
-Frame  30: Y = 18.66
-Frame  60: Y = 14.94
-Frame  90: Y = 8.88
-Frame 120: Y = 0.56
-Frame 150: Y = -9.98
-Done!
+Player controller demo - character walks in a circle
+==========================================================
+[0.0s] Position: X=  0.05 Y=  5.00 Z=  0.00 | State: InAir
+[0.5s] Position: X=  1.45 Y=  3.65 Z=  0.47 | State: InAir
+[1.0s] Position: X=  2.30 Y=  1.90 Z=  1.67 | State: OnGround
+[1.5s] Position: X=  2.29 Y=  1.90 Z=  3.15 | State: OnGround
+[2.0s] Position: X=  1.41 Y=  1.90 Z=  4.33 | State: OnGround
+[2.5s] Position: X=  0.00 Y=  1.90 Z=  4.77 | State: OnGround
+[3.0s] Position: X= -1.40 Y=  1.90 Z=  4.30 | State: OnGround
+[3.5s] Position: X= -2.25 Y=  1.90 Z=  3.10 | State: OnGround
+[4.0s] Position: X= -2.24 Y=  1.90 Z=  1.63 | State: OnGround
+[4.5s] Position: X= -1.36 Y=  1.90 Z=  0.44 | State: OnGround
+==========================================================
+Demo complete!
 ```
 
 ## Updating Jolt Physics Version
