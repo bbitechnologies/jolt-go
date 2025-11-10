@@ -55,14 +55,12 @@ type InputRequest struct {
 // PlayerController manages character movement based on input
 type PlayerController struct {
 	character *jolt.CharacterVirtual
-	velocity  jolt.Vec3
 }
 
 // NewPlayerController creates a new player controller
 func NewPlayerController(character *jolt.CharacterVirtual) *PlayerController {
 	return &PlayerController{
 		character: character,
-		velocity:  jolt.Vec3{X: 0, Y: 0, Z: 0},
 	}
 }
 
@@ -92,28 +90,29 @@ func (pc *PlayerController) ApplyInput(req InputRequest) {
 	}
 
 	// Get current velocity
-	if pc.character.IsSupported() && pc.velocity.Y <= 0 {
+	var velocity jolt.Vec3
+	if pc.character.IsSupported() {
 		// On ground, read only horizontal velocity
-		pc.velocity = pc.character.GetGroundVelocity()
+		velocity = pc.character.GetGroundVelocity()
 	} else {
 		// In air, read full velocity
-		pc.velocity = pc.character.GetLinearVelocity()
+		velocity = pc.character.GetLinearVelocity()
 	}
 
 	// Apply move speed to horizontal velocity
-	pc.velocity.X = moveDir.X * MoveSpeed
-	pc.velocity.Z = moveDir.Z * MoveSpeed
+	velocity.X = moveDir.X * MoveSpeed
+	velocity.Z = moveDir.Z * MoveSpeed
 
 	// Handle jumping (only when grounded)
-	if req.Input.Jump && pc.character.IsSupported() && pc.velocity.Y <= 0 {
-		pc.velocity.Y = JumpSpeed
+	if req.Input.Jump && pc.character.IsSupported() {
+		velocity.Y = JumpSpeed
 	}
 
 	// Apply gravity
-	pc.velocity.Y += GravityY * req.DeltaTime
+	velocity.Y += GravityY * req.DeltaTime
 
-	// Set velocity and update character (ExtendedUpdate handles collision resolution)
-	pc.character.SetLinearVelocity(pc.velocity)
+	// Set desired velocity and call extended update to resolve movement
+	pc.character.SetLinearVelocity(velocity)
 	gravity := jolt.Vec3{X: 0, Y: GravityY, Z: 0}
 	pc.character.ExtendedUpdate(req.DeltaTime, gravity)
 }
@@ -121,6 +120,11 @@ func (pc *PlayerController) ApplyInput(req InputRequest) {
 // GetPosition returns the current character position
 func (pc *PlayerController) GetPosition() jolt.Vec3 {
 	return pc.character.GetPosition()
+}
+
+// GetLinearVelocity returns the current character velocity
+func (pc *PlayerController) GetLinearVelocity() jolt.Vec3 {
+	return pc.character.GetLinearVelocity()
 }
 
 // GetGroundState returns the current ground state
@@ -171,7 +175,7 @@ func main() {
 
 	elapsedTime := float32(0)
 
-	for i := 0; i < 600; i++ {
+	for i := range 600 {
 		// Simulate different input patterns based on time
 		input := InputState{}
 
@@ -202,7 +206,7 @@ func main() {
 		// Print position and ground state every 0.5 seconds
 		if i%30 == 0 {
 			pos := controller.GetPosition()
-			vel := character.GetLinearVelocity()
+			vel := controller.GetLinearVelocity()
 			groundState := controller.GetGroundState()
 			fmt.Printf("[%.1fs] Position: X=% 6.2f Y=% 6.2f Z=% 6.2f | Velocity: X=% 5.2f Y=% 5.2f Z=% 5.2f | State: %s | Input: %s\n",
 				elapsedTime, pos.X, pos.Y, pos.Z, vel.X, vel.Y, vel.Z, groundState, input.String())
