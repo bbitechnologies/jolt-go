@@ -16,22 +16,16 @@ func main() {
 	defer jolt.Shutdown()
 
 	// Create physics world
-	ps, err := jolt.NewPhysicsSystem()
-	if err != nil {
-		panic(err)
-	}
+	ps := jolt.NewPhysicsSystem()
 	defer ps.Destroy()
 
 	// Create a large static platform (20x1x20 box at Y=0)
 	bi := ps.GetBodyInterface()
-	floor, err := bi.CreateBox(
+	floor := bi.CreateBox(
 		jolt.Vec3{X: 10, Y: 0.5, Z: 10}, // half-extents (creates 20x1x20 box)
 		jolt.Vec3{X: 0, Y: 0, Z: 0},     // position
 		false,                           // static
 	)
-	if err != nil {
-		panic(err)
-	}
 	defer floor.Destroy()
 
 	// Update physics once to initialize broad phase
@@ -39,10 +33,7 @@ func main() {
 	ps.Update(deltaTime)
 
 	// Create player character above the platform at Y=5 (will fall to ground)
-	player, err := ps.CreateCharacterVirtual(jolt.Vec3{X: 0, Y: 5, Z: 0})
-	if err != nil {
-		panic(err)
-	}
+	player := ps.CreateCharacterVirtual(jolt.Vec3{X: 0, Y: 5, Z: 0})
 	defer player.Destroy()
 
 	// Simulate for 5 seconds at ~60 FPS

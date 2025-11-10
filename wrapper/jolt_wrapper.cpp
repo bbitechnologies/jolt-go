@@ -50,17 +50,9 @@ static bool AssertFailedImpl(const char *inExpression, const char *inMessage, co
 static std::unique_ptr<TempAllocatorImpl> gTempAllocator;
 static std::unique_ptr<JobSystemThreadPool> gJobSystem;
 static std::unique_ptr<Factory> gFactory;
-static bool gInitialized = false;
 
 int JoltInit()
 {
-	// Prevent double-initialization (would leak resources)
-	if (gInitialized)
-	{
-		std::cerr << "Warning: JoltInit() called twice - ignoring second call" << std::endl;
-		return 1;
-	}
-
 	Trace = TraceImpl;
 	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
 
@@ -72,23 +64,15 @@ int JoltInit()
 	gJobSystem = std::make_unique<JobSystemThreadPool>(cMaxPhysicsJobs, cMaxPhysicsBarriers,
 													   std::thread::hardware_concurrency() - 1);
 
-	gInitialized = true;
 	return 1;
 }
 
 void JoltShutdown()
 {
-	if (!gInitialized)
-	{
-		return;
-	}
-
-	// Smart pointers automatically clean up in correct order
 	gJobSystem.reset();
 	gTempAllocator.reset();
 	gFactory.reset();
 	Factory::sInstance = nullptr;
-	gInitialized = false;
 }
 
 // Collision layers: NON_MOVING (static) and MOVING (dynamic)
@@ -296,13 +280,6 @@ JoltBodyID JoltCreateSphere(JoltBodyInterface bodyInterface,
 	SphereShapeSettings sphere_settings(radius);
 	ShapeSettings::ShapeResult sphere_result = sphere_settings.Create();
 
-	// Check if shape creation succeeded
-	if (!sphere_result.IsValid())
-	{
-		std::cerr << "Failed to create sphere shape: " << sphere_result.GetError() << std::endl;
-		return nullptr;
-	}
-
 	BodyCreationSettings body_settings(
 		sphere_result.Get(),
 		RVec3(x, y, z),
@@ -311,12 +288,6 @@ JoltBodyID JoltCreateSphere(JoltBodyInterface bodyInterface,
 		isDynamic ? Layers::MOVING : Layers::NON_MOVING);
 
 	Body *body = bi->CreateBody(body_settings);
-	if (!body)
-	{
-		std::cerr << "Failed to create sphere body" << std::endl;
-		return nullptr;
-	}
-
 	bi->AddBody(body->GetID(), EActivation::Activate);
 
 	// Use smart pointer for exception safety, then release to caller
@@ -334,13 +305,6 @@ JoltBodyID JoltCreateBox(JoltBodyInterface bodyInterface,
 	BoxShapeSettings box_settings(Vec3(halfExtentX, halfExtentY, halfExtentZ));
 	ShapeSettings::ShapeResult box_result = box_settings.Create();
 
-	// Check if shape creation succeeded
-	if (!box_result.IsValid())
-	{
-		std::cerr << "Failed to create box shape: " << box_result.GetError() << std::endl;
-		return nullptr;
-	}
-
 	BodyCreationSettings body_settings(
 		box_result.Get(),
 		RVec3(x, y, z),
@@ -349,12 +313,6 @@ JoltBodyID JoltCreateBox(JoltBodyInterface bodyInterface,
 		isDynamic ? Layers::MOVING : Layers::NON_MOVING);
 
 	Body *body = bi->CreateBody(body_settings);
-	if (!body)
-	{
-		std::cerr << "Failed to create box body" << std::endl;
-		return nullptr;
-	}
-
 	bi->AddBody(body->GetID(), EActivation::Activate);
 
 	// Use smart pointer for exception safety, then release to caller
@@ -376,13 +334,6 @@ JoltCharacterVirtual JoltCreateCharacterVirtual(JoltPhysicsSystem system,
 	// Create a capsule shape for the character (half-height 0.9m, radius 0.5m = ~1.8m tall human)
 	CapsuleShapeSettings capsule_settings(0.9f, 0.5f);
 	ShapeSettings::ShapeResult capsule_result = capsule_settings.Create();
-
-	// Check if shape creation succeeded
-	if (!capsule_result.IsValid())
-	{
-		std::cerr << "Failed to create character capsule shape: " << capsule_result.GetError() << std::endl;
-		return nullptr;
-	}
 
 	CharacterVirtualSettings settings;
 	settings.mShape = capsule_result.Get();
