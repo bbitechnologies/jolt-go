@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	MoveSpeed = float32(5.0)   // meters per second
+	MoveSpeed = float32(3.0)   // meters per second
 	JumpSpeed = float32(7.0)   // meters per second
 	GravityY  = float32(-9.81) // meters per second squared
 )
@@ -91,6 +91,15 @@ func (pc *PlayerController) ApplyInput(req InputRequest) {
 		moveDir.Z /= magnitude
 	}
 
+	// Get current velocity
+	if pc.character.IsSupported() && pc.velocity.Y <= 0 {
+		// On ground, read only horizontal velocity
+		pc.velocity = pc.character.GetGroundVelocity()
+	} else {
+		// In air, read full velocity
+		pc.velocity = pc.character.GetLinearVelocity()
+	}
+
 	// Apply move speed to horizontal velocity
 	pc.velocity.X = moveDir.X * MoveSpeed
 	pc.velocity.Z = moveDir.Z * MoveSpeed
@@ -103,12 +112,7 @@ func (pc *PlayerController) ApplyInput(req InputRequest) {
 	// Apply gravity
 	pc.velocity.Y += GravityY * req.DeltaTime
 
-	// Reset vertical velocity when grounded and falling
-	if pc.character.IsSupported() && pc.velocity.Y < 0 {
-		pc.velocity.Y = 0
-	}
-
-	// Set velocity and update character
+	// Set velocity and update character (ExtendedUpdate handles collision resolution)
 	pc.character.SetLinearVelocity(pc.velocity)
 	gravity := jolt.Vec3{X: 0, Y: GravityY, Z: 0}
 	pc.character.ExtendedUpdate(req.DeltaTime, gravity)
@@ -198,9 +202,10 @@ func main() {
 		// Print position and ground state every 0.5 seconds
 		if i%30 == 0 {
 			pos := controller.GetPosition()
+			vel := character.GetLinearVelocity()
 			groundState := controller.GetGroundState()
-			fmt.Printf("[%.1fs] Position: X=% 6.2f Y=% 6.2f Z=% 6.2f | State: %s | Input: %s\n",
-				elapsedTime, pos.X, pos.Y, pos.Z, groundState, input.String())
+			fmt.Printf("[%.1fs] Position: X=% 6.2f Y=% 6.2f Z=% 6.2f | Velocity: X=% 5.2f Y=% 5.2f Z=% 5.2f | State: %s | Input: %s\n",
+				elapsedTime, pos.X, pos.Y, pos.Z, vel.X, vel.Y, vel.Z, groundState, input.String())
 		}
 
 		elapsedTime += deltaTime

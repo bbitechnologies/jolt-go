@@ -390,6 +390,26 @@ void JoltCharacterVirtualSetLinearVelocity(JoltCharacterVirtual character,
 	cv->SetLinearVelocity(Vec3(x, y, z));
 }
 
+void JoltCharacterVirtualGetLinearVelocity(const JoltCharacterVirtual character,
+										   float* x, float* y, float* z)
+{
+	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
+	Vec3 vel = cv->GetLinearVelocity();
+	*x = vel.GetX();
+	*y = vel.GetY();
+	*z = vel.GetZ();
+}
+
+void JoltCharacterVirtualGetGroundVelocity(const JoltCharacterVirtual character,
+											float* x, float* y, float* z)
+{
+	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
+	Vec3 vel = cv->GetGroundVelocity();
+	*x = vel.GetX();
+	*y = vel.GetY();
+	*z = vel.GetZ();
+}
+
 void JoltCharacterVirtualGetPosition(const JoltCharacterVirtual character,
 									 float* x, float* y, float* z)
 {

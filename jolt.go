@@ -204,6 +204,28 @@ func (cv *CharacterVirtual) SetLinearVelocity(velocity Vec3) {
 	)
 }
 
+// GetLinearVelocity returns the current linear velocity of the character
+func (cv *CharacterVirtual) GetLinearVelocity() Vec3 {
+	var x, y, z C.float
+	C.JoltCharacterVirtualGetLinearVelocity(cv.handle, &x, &y, &z)
+	return Vec3{
+		X: float32(x),
+		Y: float32(y),
+		Z: float32(z),
+	}
+}
+
+// GetGroundVelocity returns the velocity clamped to the ground plane
+func (cv *CharacterVirtual) GetGroundVelocity() Vec3 {
+	var x, y, z C.float
+	C.JoltCharacterVirtualGetGroundVelocity(cv.handle, &x, &y, &z)
+	return Vec3{
+		X: float32(x),
+		Y: float32(y),
+		Z: float32(z),
+	}
+}
+
 // GetPosition returns the current position of the character
 func (cv *CharacterVirtual) GetPosition() Vec3 {
 	var x, y, z C.float
