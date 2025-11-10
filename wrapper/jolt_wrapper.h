@@ -46,8 +46,8 @@ void JoltPhysicsSystemUpdate(JoltPhysicsSystem system, float deltaTime);
 JoltBodyInterface JoltPhysicsSystemGetBodyInterface(JoltPhysicsSystem system);
 
 // Get the position of a body
-void JoltGetBodyPosition(JoltBodyInterface bodyInterface,
-                        JoltBodyID bodyID,
+void JoltGetBodyPosition(const JoltBodyInterface bodyInterface,
+                        const JoltBodyID bodyID,
                         float* x, float* y, float* z);
 
 // Create a sphere body
@@ -87,14 +87,14 @@ void JoltCharacterVirtualSetLinearVelocity(JoltCharacterVirtual character,
                                            float x, float y, float z);
 
 // Get the position of a virtual character
-void JoltCharacterVirtualGetPosition(JoltCharacterVirtual character,
+void JoltCharacterVirtualGetPosition(const JoltCharacterVirtual character,
                                      float* x, float* y, float* z);
 
 // Get the ground state of a virtual character
-JoltGroundState JoltCharacterVirtualGetGroundState(JoltCharacterVirtual character);
+JoltGroundState JoltCharacterVirtualGetGroundState(const JoltCharacterVirtual character);
 
 // Check if character is supported (on ground or steep ground)
-int JoltCharacterVirtualIsSupported(JoltCharacterVirtual character);
+int JoltCharacterVirtualIsSupported(const JoltCharacterVirtual character);
 
 #ifdef __cplusplus
 }

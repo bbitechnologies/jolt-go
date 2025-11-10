@@ -87,9 +87,12 @@ func Shutdown() {
 }
 
 // NewPhysicsSystem creates a new physics world
-func NewPhysicsSystem() *PhysicsSystem {
+func NewPhysicsSystem() (*PhysicsSystem, error) {
 	handle := C.JoltCreatePhysicsSystem()
-	return &PhysicsSystem{handle: handle}
+	if handle == nil {
+		return nil, fmt.Errorf("failed to create physics system")
+	}
+	return &PhysicsSystem{handle: handle}, nil
 }
 
 // Destroy frees the physics system
@@ -121,7 +124,7 @@ func (bi *BodyInterface) GetPosition(bodyID *BodyID) Vec3 {
 
 // CreateSphere creates a sphere body
 // isDynamic: true = affected by forces, false = static/immovable
-func (bi *BodyInterface) CreateSphere(radius float32, position Vec3, isDynamic bool) *BodyID {
+func (bi *BodyInterface) CreateSphere(radius float32, position Vec3, isDynamic bool) (*BodyID, error) {
 	dynamic := C.int(0)
 	if isDynamic {
 		dynamic = C.int(1)
@@ -136,13 +139,17 @@ func (bi *BodyInterface) CreateSphere(radius float32, position Vec3, isDynamic b
 		dynamic,
 	)
 
-	return &BodyID{handle: handle}
+	if handle == nil {
+		return nil, fmt.Errorf("failed to create sphere body (radius=%.2f, pos=%v, dynamic=%v)", radius, position, isDynamic)
+	}
+
+	return &BodyID{handle: handle}, nil
 }
 
 // CreateBox creates a box body
 // halfExtent: half-size of the box in each dimension (e.g., Vec3{5,0.5,5} creates 10x1x10 box)
 // isDynamic: true = affected by forces, false = static/immovable
-func (bi *BodyInterface) CreateBox(halfExtent Vec3, position Vec3, isDynamic bool) *BodyID {
+func (bi *BodyInterface) CreateBox(halfExtent Vec3, position Vec3, isDynamic bool) (*BodyID, error) {
 	dynamic := C.int(0)
 	if isDynamic {
 		dynamic = C.int(1)
@@ -159,18 +166,25 @@ func (bi *BodyInterface) CreateBox(halfExtent Vec3, position Vec3, isDynamic boo
 		dynamic,
 	)
 
-	return &BodyID{handle: handle}
+	if handle == nil {
+		return nil, fmt.Errorf("failed to create box body (halfExtent=%v, pos=%v, dynamic=%v)", halfExtent, position, isDynamic)
+	}
+
+	return &BodyID{handle: handle}, nil
 }
 
 // CreateCharacterVirtual creates a virtual character at the specified initial position
-func (ps *PhysicsSystem) CreateCharacterVirtual(position Vec3) *CharacterVirtual {
+func (ps *PhysicsSystem) CreateCharacterVirtual(position Vec3) (*CharacterVirtual, error) {
 	handle := C.JoltCreateCharacterVirtual(
 		ps.handle,
 		C.float(position.X),
 		C.float(position.Y),
 		C.float(position.Z),
 	)
-	return &CharacterVirtual{handle: handle, ps: ps}
+	if handle == nil {
+		return nil, fmt.Errorf("failed to create character virtual at position %v", position)
+	}
+	return &CharacterVirtual{handle: handle, ps: ps}, nil
 }
 
 // CharacterVirtual represents a virtual character in the physics world

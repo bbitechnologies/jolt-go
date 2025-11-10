@@ -20,6 +20,7 @@
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <iostream>
+#include <memory>
 #include <cstdarg>
 
 using namespace JPH;
@@ -45,29 +46,49 @@ static bool AssertFailedImpl(const char *inExpression, const char *inMessage, co
 #endif
 
 // Global Jolt resources (shared by all PhysicsSystems)
-static TempAllocatorImpl *gTempAllocator = nullptr;
-static JobSystemThreadPool *gJobSystem = nullptr;
+// Using smart pointers for automatic cleanup and exception safety
+static std::unique_ptr<TempAllocatorImpl> gTempAllocator;
+static std::unique_ptr<JobSystemThreadPool> gJobSystem;
+static std::unique_ptr<Factory> gFactory;
+static bool gInitialized = false;
 
 int JoltInit()
 {
+	// Prevent double-initialization (would leak resources)
+	if (gInitialized)
+	{
+		std::cerr << "Warning: JoltInit() called twice - ignoring second call" << std::endl;
+		return 1;
+	}
+
 	Trace = TraceImpl;
 	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
 
-	Factory::sInstance = new Factory();
+	gFactory = std::make_unique<Factory>();
+	Factory::sInstance = gFactory.get();
 	RegisterTypes();
 
-	gTempAllocator = new TempAllocatorImpl(10 * 1024 * 1024);
-	gJobSystem = new JobSystemThreadPool(cMaxPhysicsJobs, cMaxPhysicsBarriers,
-										 std::thread::hardware_concurrency() - 1);
+	gTempAllocator = std::make_unique<TempAllocatorImpl>(10 * 1024 * 1024);
+	gJobSystem = std::make_unique<JobSystemThreadPool>(cMaxPhysicsJobs, cMaxPhysicsBarriers,
+													   std::thread::hardware_concurrency() - 1);
+
+	gInitialized = true;
 	return 1;
 }
 
 void JoltShutdown()
 {
-	delete gJobSystem;
-	delete gTempAllocator;
-	delete Factory::sInstance;
+	if (!gInitialized)
+	{
+		return;
+	}
+
+	// Smart pointers automatically clean up in correct order
+	gJobSystem.reset();
+	gTempAllocator.reset();
+	gFactory.reset();
 	Factory::sInstance = nullptr;
+	gInitialized = false;
 }
 
 // Collision layers: NON_MOVING (static) and MOVING (dynamic)
@@ -199,10 +220,13 @@ private:
 // Wrapper to keep layer interfaces alive (PhysicsSystem stores references to them)
 struct PhysicsSystemWrapper
 {
-	PhysicsSystem *system;
-	BPLayerInterfaceImpl *broad_phase_layer_interface;
-	ObjectVsBroadPhaseLayerFilterImpl *object_vs_broadphase_layer_filter;
-	ObjectLayerPairFilterImpl *object_vs_object_layer_filter;
+	std::unique_ptr<PhysicsSystem> system;
+	std::unique_ptr<BPLayerInterfaceImpl> broad_phase_layer_interface;
+	std::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl> object_vs_broadphase_layer_filter;
+	std::unique_ptr<ObjectLayerPairFilterImpl> object_vs_object_layer_filter;
+
+	// Destructor automatically cleans up all smart pointers
+	~PhysicsSystemWrapper() = default;
 };
 
 JoltPhysicsSystem JoltCreatePhysicsSystem()
@@ -212,41 +236,35 @@ JoltPhysicsSystem JoltCreatePhysicsSystem()
 	const uint cMaxBodyPairs = 1024;
 	const uint cMaxContactConstraints = 1024;
 
-	// Heap-allocate layer interfaces (must outlive PhysicsSystem!)
-	BPLayerInterfaceImpl *broad_phase_layer_interface = new BPLayerInterfaceImpl();
-	ObjectVsBroadPhaseLayerFilterImpl *object_vs_broadphase_layer_filter = new ObjectVsBroadPhaseLayerFilterImpl();
-	ObjectLayerPairFilterImpl *object_vs_object_layer_filter = new ObjectLayerPairFilterImpl();
+	// Create wrapper to hold PhysicsSystem and layer interfaces
+	auto wrapper = std::make_unique<PhysicsSystemWrapper>();
 
-	PhysicsSystem *system = new PhysicsSystem();
-	system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints,
-				 *broad_phase_layer_interface,
-				 *object_vs_broadphase_layer_filter,
-				 *object_vs_object_layer_filter);
+	// Create layer interfaces using smart pointers
+	wrapper->broad_phase_layer_interface = std::make_unique<BPLayerInterfaceImpl>();
+	wrapper->object_vs_broadphase_layer_filter = std::make_unique<ObjectVsBroadPhaseLayerFilterImpl>();
+	wrapper->object_vs_object_layer_filter = std::make_unique<ObjectLayerPairFilterImpl>();
 
-	// Wrap everything for proper cleanup
-	PhysicsSystemWrapper *wrapper = new PhysicsSystemWrapper();
-	wrapper->system = system;
-	wrapper->broad_phase_layer_interface = broad_phase_layer_interface;
-	wrapper->object_vs_broadphase_layer_filter = object_vs_broadphase_layer_filter;
-	wrapper->object_vs_object_layer_filter = object_vs_object_layer_filter;
+	// Create physics system
+	wrapper->system = std::make_unique<PhysicsSystem>();
+	wrapper->system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints,
+						  *wrapper->broad_phase_layer_interface,
+						  *wrapper->object_vs_broadphase_layer_filter,
+						  *wrapper->object_vs_object_layer_filter);
 
-	return static_cast<JoltPhysicsSystem>(wrapper);
+	// Release ownership to caller (Go will manage lifetime via JoltDestroyPhysicsSystem)
+	return static_cast<JoltPhysicsSystem>(wrapper.release());
 }
 
 void JoltDestroyPhysicsSystem(JoltPhysicsSystem system)
 {
 	PhysicsSystemWrapper *wrapper = static_cast<PhysicsSystemWrapper *>(system);
-	delete wrapper->system;
-	delete wrapper->broad_phase_layer_interface;
-	delete wrapper->object_vs_broadphase_layer_filter;
-	delete wrapper->object_vs_object_layer_filter;
 	delete wrapper;
 }
 
 void JoltPhysicsSystemUpdate(JoltPhysicsSystem system, float deltaTime)
 {
 	PhysicsSystemWrapper *wrapper = static_cast<PhysicsSystemWrapper *>(system);
-	wrapper->system->Update(deltaTime, 1, gTempAllocator, gJobSystem);
+	wrapper->system->Update(deltaTime, 1, gTempAllocator.get(), gJobSystem.get());
 }
 
 JoltBodyInterface JoltPhysicsSystemGetBodyInterface(JoltPhysicsSystem system)
@@ -255,12 +273,12 @@ JoltBodyInterface JoltPhysicsSystemGetBodyInterface(JoltPhysicsSystem system)
 	return static_cast<JoltBodyInterface>(&wrapper->system->GetBodyInterface());
 }
 
-void JoltGetBodyPosition(JoltBodyInterface bodyInterface,
-						 JoltBodyID bodyID,
+void JoltGetBodyPosition(const JoltBodyInterface bodyInterface,
+						 const JoltBodyID bodyID,
 						 float *x, float *y, float *z)
 {
-	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
-	BodyID *bid = static_cast<BodyID *>(bodyID);
+	const BodyInterface *bi = static_cast<const BodyInterface *>(bodyInterface);
+	const BodyID *bid = static_cast<const BodyID *>(bodyID);
 
 	RVec3 pos = bi->GetPosition(*bid);
 	*x = static_cast<float>(pos.GetX());
@@ -278,6 +296,13 @@ JoltBodyID JoltCreateSphere(JoltBodyInterface bodyInterface,
 	SphereShapeSettings sphere_settings(radius);
 	ShapeSettings::ShapeResult sphere_result = sphere_settings.Create();
 
+	// Check if shape creation succeeded
+	if (!sphere_result.IsValid())
+	{
+		std::cerr << "Failed to create sphere shape: " << sphere_result.GetError() << std::endl;
+		return nullptr;
+	}
+
 	BodyCreationSettings body_settings(
 		sphere_result.Get(),
 		RVec3(x, y, z),
@@ -286,10 +311,17 @@ JoltBodyID JoltCreateSphere(JoltBodyInterface bodyInterface,
 		isDynamic ? Layers::MOVING : Layers::NON_MOVING);
 
 	Body *body = bi->CreateBody(body_settings);
+	if (!body)
+	{
+		std::cerr << "Failed to create sphere body" << std::endl;
+		return nullptr;
+	}
+
 	bi->AddBody(body->GetID(), EActivation::Activate);
 
-	BodyID *bodyIDPtr = new BodyID(body->GetID());
-	return static_cast<JoltBodyID>(bodyIDPtr);
+	// Use smart pointer for exception safety, then release to caller
+	auto bodyIDPtr = std::make_unique<BodyID>(body->GetID());
+	return static_cast<JoltBodyID>(bodyIDPtr.release());
 }
 
 JoltBodyID JoltCreateBox(JoltBodyInterface bodyInterface,
@@ -302,6 +334,13 @@ JoltBodyID JoltCreateBox(JoltBodyInterface bodyInterface,
 	BoxShapeSettings box_settings(Vec3(halfExtentX, halfExtentY, halfExtentZ));
 	ShapeSettings::ShapeResult box_result = box_settings.Create();
 
+	// Check if shape creation succeeded
+	if (!box_result.IsValid())
+	{
+		std::cerr << "Failed to create box shape: " << box_result.GetError() << std::endl;
+		return nullptr;
+	}
+
 	BodyCreationSettings body_settings(
 		box_result.Get(),
 		RVec3(x, y, z),
@@ -310,10 +349,17 @@ JoltBodyID JoltCreateBox(JoltBodyInterface bodyInterface,
 		isDynamic ? Layers::MOVING : Layers::NON_MOVING);
 
 	Body *body = bi->CreateBody(body_settings);
+	if (!body)
+	{
+		std::cerr << "Failed to create box body" << std::endl;
+		return nullptr;
+	}
+
 	bi->AddBody(body->GetID(), EActivation::Activate);
 
-	BodyID *bodyIDPtr = new BodyID(body->GetID());
-	return static_cast<JoltBodyID>(bodyIDPtr);
+	// Use smart pointer for exception safety, then release to caller
+	auto bodyIDPtr = std::make_unique<BodyID>(body->GetID());
+	return static_cast<JoltBodyID>(bodyIDPtr.release());
 }
 
 void JoltDestroyBodyID(JoltBodyID bodyID)
@@ -331,6 +377,13 @@ JoltCharacterVirtual JoltCreateCharacterVirtual(JoltPhysicsSystem system,
 	CapsuleShapeSettings capsule_settings(0.9f, 0.5f);
 	ShapeSettings::ShapeResult capsule_result = capsule_settings.Create();
 
+	// Check if shape creation succeeded
+	if (!capsule_result.IsValid())
+	{
+		std::cerr << "Failed to create character capsule shape: " << capsule_result.GetError() << std::endl;
+		return nullptr;
+	}
+
 	CharacterVirtualSettings settings;
 	settings.mShape = capsule_result.Get();
 	settings.mMaxSlopeAngle = DegreesToRadians(45.0f);
@@ -340,9 +393,9 @@ JoltCharacterVirtual JoltCreateCharacterVirtual(JoltPhysicsSystem system,
 	settings.mPenetrationRecoverySpeed = 1.0f;
 	settings.mPredictiveContactDistance = 0.1f;
 
-	// Create at specified position
-	CharacterVirtual* character = new CharacterVirtual(&settings, RVec3(x, y, z), Quat::sIdentity(), wrapper->system);
-	return static_cast<JoltCharacterVirtual>(character);
+	// Create at specified position using smart pointer for exception safety
+	auto character = std::make_unique<CharacterVirtual>(&settings, RVec3(x, y, z), Quat::sIdentity(), wrapper->system.get());
+	return static_cast<JoltCharacterVirtual>(character.release());
 }
 
 void JoltDestroyCharacterVirtual(JoltCharacterVirtual character)
@@ -363,8 +416,8 @@ void JoltCharacterVirtualExtendedUpdate(JoltCharacterVirtual character,
 	CharacterVirtual::ExtendedUpdateSettings settings;
 
 	// Use MOVING layer for character (same as dynamic bodies)
-	BroadPhaseLayerFilterAdapter broad_phase_filter(wrapper->object_vs_broadphase_layer_filter, Layers::MOVING);
-	ObjectLayerFilterAdapter object_layer_filter(wrapper->object_vs_object_layer_filter, Layers::MOVING);
+	BroadPhaseLayerFilterAdapter broad_phase_filter(wrapper->object_vs_broadphase_layer_filter.get(), Layers::MOVING);
+	ObjectLayerFilterAdapter object_layer_filter(wrapper->object_vs_object_layer_filter.get(), Layers::MOVING);
 
 	// Call ExtendedUpdate with gravity vector and layer filters
 	cv->ExtendedUpdate(
@@ -375,7 +428,7 @@ void JoltCharacterVirtualExtendedUpdate(JoltCharacterVirtual character,
 		object_layer_filter,
 		{}, // Empty BodyFilter (collides with all bodies)
 		{}, // Empty ShapeFilter (collides with all shapes)
-		*gTempAllocator
+		*gTempAllocator.get()
 	);
 }
 
@@ -386,25 +439,25 @@ void JoltCharacterVirtualSetLinearVelocity(JoltCharacterVirtual character,
 	cv->SetLinearVelocity(Vec3(x, y, z));
 }
 
-void JoltCharacterVirtualGetPosition(JoltCharacterVirtual character,
+void JoltCharacterVirtualGetPosition(const JoltCharacterVirtual character,
 									 float* x, float* y, float* z)
 {
-	CharacterVirtual* cv = static_cast<CharacterVirtual*>(character);
+	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
 	RVec3 pos = cv->GetPosition();
 	*x = static_cast<float>(pos.GetX());
 	*y = static_cast<float>(pos.GetY());
 	*z = static_cast<float>(pos.GetZ());
 }
 
-JoltGroundState JoltCharacterVirtualGetGroundState(JoltCharacterVirtual character)
+JoltGroundState JoltCharacterVirtualGetGroundState(const JoltCharacterVirtual character)
 {
-	CharacterVirtual* cv = static_cast<CharacterVirtual*>(character);
+	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
 	CharacterBase::EGroundState state = cv->GetGroundState();
 	return static_cast<JoltGroundState>(state);
 }
 
-int JoltCharacterVirtualIsSupported(JoltCharacterVirtual character)
+int JoltCharacterVirtualIsSupported(const JoltCharacterVirtual character)
 {
-	CharacterVirtual* cv = static_cast<CharacterVirtual*>(character);
+	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
 	return cv->IsSupported() ? 1 : 0;
 }
