@@ -152,10 +152,6 @@ func main() {
 	)
 	defer floor.Destroy()
 
-	// Update physics once to initialize broad phase
-	deltaTime := float32(1.0 / 60.0)
-	ps.Update(deltaTime)
-
 	// Create player character above the platform at Y=5 (will fall to ground)
 	character := ps.CreateCharacterVirtual(jolt.Vec3{X: 0, Y: 5, Z: 0})
 	defer character.Destroy()
@@ -173,12 +169,12 @@ func main() {
 	fmt.Println("Phase 5: Diagonal movement (simulated S+D keys)")
 	fmt.Println("==========================================================")
 
-	elapsedTime := float32(0)
-
+	deltaTime := float32(1.0 / 60.0) // 60 FPS
+	elapsedTime := float32(0)        // total elapsed time
+	// Simulate for 10 seconds (600 frames)
 	for i := range 600 {
 		// Simulate different input patterns based on time
 		input := InputState{}
-
 		if elapsedTime >= 1.0 && elapsedTime < 3.0 {
 			// Walk forward
 			input.Forward = true
@@ -213,7 +209,7 @@ func main() {
 		}
 
 		elapsedTime += deltaTime
-		time.Sleep(time.Millisecond * 16)
+		time.Sleep(time.Duration(deltaTime * float32(time.Second)))
 	}
 
 	fmt.Println("==========================================================")
