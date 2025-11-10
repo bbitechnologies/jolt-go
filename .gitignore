@@ -1,2 +1,2 @@
-# Pre-built binaries are committed to ensure the package works as a Go module dependency
-# lib/ is intentionally NOT ignored
+# IDE Configurations
+.vscode/

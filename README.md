@@ -44,9 +44,9 @@ func main() {
     // Create a dynamic sphere
     bi := ps.GetBodyInterface()
     sphere := bi.CreateSphere(
-        1.0,                              // radius
-        jolt.Vec3{X: 0, Y: 20, Z: 0},    // position
-        true,                             // is dynamic
+        1.0,                          // radius
+        jolt.Vec3{X: 0, Y: 20, Z: 0}, // position
+        true,                         // is dynamic
     )
 
     // Simulate physics
@@ -73,46 +73,14 @@ See the [example](example/main.go) for a complete working demo.
 
 Want support for another platform? Open an issue or see [MAINTAINERS.md](MAINTAINERS.md) for build instructions.
 
-## API Overview
-
-### Core Types
-
-- `PhysicsSystem` - The physics simulation world
-- `BodyInterface` - Interface for creating and manipulating bodies
-- `BodyID` - Unique identifier for a physics body
-- `Vec3` - 3D vector (position, velocity, etc.)
-
-### Creating Bodies
-
-```go
-// Create dynamic sphere (affected by gravity)
-sphere := bi.CreateSphere(radius, position, true)
-
-// Create static sphere (immovable)
-floor := bi.CreateSphere(radius, position, false)
-```
-
-### Simulation
-
-```go
-// Update physics (typically called 60 times per second)
-deltaTime := 1.0 / 60.0
-ps.Update(deltaTime)
-
-// Get body position
-pos := bi.GetPosition(bodyID)
-```
-
 ## Architecture
 
 ```
 Go Application
      ↓
-Go Bindings (jolt.go)
+CGo Bindings (jolt.go)
      ↓
-CGO Layer
-     ↓
-C Wrapper (wrapper/jolt_wrapper.cpp)
+C Wrapper (wrapper/jolt_wrapper.{cpp,h})
      ↓
 Jolt Physics C++ Library
 ```
@@ -129,7 +97,7 @@ Jolt Physics is one of the fastest physics engines available:
 
 ## Contributing
 
-Contributions are welcome! Please see [MAINTAINERS.md](MAINTAINERS.md) for:
+Contributions are welcome! Please see [CONTRIBUTORS.md](CONTRIBUTORS.md) for:
 - How to rebuild binaries
 - Adding support for new platforms
 - Modifying the C wrapper

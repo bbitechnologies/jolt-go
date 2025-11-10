@@ -51,7 +51,7 @@ int JoltInit()
 	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
 
 	Factory::sInstance = new Factory();
-	RegisterTypes(); // Version checks happen here!
+	RegisterTypes();
 
 	gTempAllocator = new TempAllocatorImpl(10 * 1024 * 1024);
 	gJobSystem = new JobSystemThreadPool(cMaxPhysicsJobs, cMaxPhysicsBarriers,
@@ -72,6 +72,7 @@ namespace Layers
 {
 	static constexpr ObjectLayer NON_MOVING = 0;
 	static constexpr ObjectLayer MOVING = 1;
+
 	static constexpr ObjectLayer NUM_LAYERS = 2;
 };
 
@@ -79,6 +80,7 @@ namespace BroadPhaseLayers
 {
 	static constexpr BroadPhaseLayer NON_MOVING(0);
 	static constexpr BroadPhaseLayer MOVING(1);
+
 	static constexpr uint NUM_LAYERS(2);
 };
 
@@ -102,18 +104,6 @@ public:
 		JPH_ASSERT(inLayer < Layers::NUM_LAYERS);
 		return mObjectToBroadPhase[inLayer];
 	}
-
-#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
-	virtual const char *GetBroadPhaseLayerName(BroadPhaseLayer inLayer) const override
-	{
-		switch ((BroadPhaseLayer::Type)inLayer)
-		{
-		case (BroadPhaseLayer::Type)BroadPhaseLayers::NON_MOVING: return "NON_MOVING";
-		case (BroadPhaseLayer::Type)BroadPhaseLayers::MOVING: return "MOVING";
-		default: JPH_ASSERT(false); return "INVALID";
-		}
-	}
-#endif
 
 private:
 	BroadPhaseLayer mObjectToBroadPhase[Layers::NUM_LAYERS];
