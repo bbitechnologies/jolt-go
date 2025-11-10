@@ -48,6 +48,7 @@ func main() {
         jolt.Vec3{X: 0, Y: 20, Z: 0}, // position
         true,                         // is dynamic
     )
+    defer sphere.Destroy()
 
     // Simulate physics
     for i := 0; i < 60; i++ {
