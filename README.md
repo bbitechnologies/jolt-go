@@ -27,7 +27,7 @@ package main
 
 import (
     "fmt"
-    "github.com/bbitechnologies/jolt-go"
+    "github.com/bbitechnologies/jolt-go/jolt"
 )
 
 func main() {
