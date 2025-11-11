@@ -16,6 +16,7 @@ extern "C" {
 typedef void* JoltPhysicsSystem;
 typedef void* JoltBodyInterface;
 typedef void* JoltBodyID;
+typedef void* JoltShape;
 typedef void* JoltCharacterVirtual;
 
 // Ground state enum (matches Jolt's EGroundState)
@@ -50,49 +51,33 @@ void JoltGetBodyPosition(const JoltBodyInterface bodyInterface,
                         const JoltBodyID bodyID,
                         float* x, float* y, float* z);
 
-// Create a sphere body
-// isDynamic: 1 = dynamic (affected by forces), 0 = static (immovable)
-JoltBodyID JoltCreateSphere(JoltBodyInterface bodyInterface,
-                            float radius,
-                            float x, float y, float z,
-                            int isDynamic);
+// ===== Shape Creation Functions =====
 
-// Create a box body
-// halfExtentX/Y/Z: half-size of the box in each dimension
-// isDynamic: 1 = dynamic (affected by forces), 0 = static (immovable)
-JoltBodyID JoltCreateBox(JoltBodyInterface bodyInterface,
-                         float halfExtentX, float halfExtentY, float halfExtentZ,
-                         float x, float y, float z,
-                         int isDynamic);
+// Create a sphere shape
+JoltShape JoltCreateSphere(float radius);
 
-// Create a capsule body
-// halfHeight: half-height of the cylindrical part
-// radius: radius of the capsule
-// isDynamic: 1 = dynamic (affected by forces), 0 = static (immovable)
-JoltBodyID JoltCreateCapsule(JoltBodyInterface bodyInterface,
-                              float halfHeight, float radius,
-                              float x, float y, float z,
-                              int isDynamic);
+// Create a box shape
+JoltShape JoltCreateBox(float halfExtentX, float halfExtentY, float halfExtentZ);
 
-// Create a convex hull body from an array of points
-// points: array of floats (x,y,z triplets)
-// numPoints: number of points (array size must be numPoints * 3)
-// isDynamic: 1 = dynamic (affected by forces), 0 = static (immovable)
-JoltBodyID JoltCreateConvexHull(JoltBodyInterface bodyInterface,
-                                const float* points, int numPoints,
-                                float x, float y, float z,
-                                int isDynamic);
+// Create a capsule shape
+JoltShape JoltCreateCapsule(float halfHeight, float radius);
 
-// Create a mesh body from vertices and indices
-// vertices: array of floats (x,y,z triplets)
-// numVertices: number of vertices (array size must be numVertices * 3)
-// indices: array of triangle indices (each triangle is 3 indices)
-// numIndices: number of indices (must be multiple of 3)
+// Create a convex hull shape from an array of points
+JoltShape JoltCreateConvexHull(const float* points, int numPoints);
+
+// Create a mesh shape from vertices and indices
+JoltShape JoltCreateMesh(const float* vertices, int numVertices,
+                               const int* indices, int numIndices);
+
+// Destroy a shape
+void JoltDestroyShape(JoltShape shape);
+
+// ===== Body Creation Functions =====
+
+// Create a body from a shape
 // isDynamic: 1 = dynamic (affected by forces), 0 = static (immovable)
-// Note: Mesh shapes are typically used for static geometry
-JoltBodyID JoltCreateMesh(JoltBodyInterface bodyInterface,
-                          const float* vertices, int numVertices,
-                          const int* indices, int numIndices,
+JoltBodyID JoltCreateBody(JoltBodyInterface bodyInterface,
+                          JoltShape shape,
                           float x, float y, float z,
                           int isDynamic);
 

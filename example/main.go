@@ -145,12 +145,15 @@ func main() {
 
 	// Create a large static platform (20x1x20 box at Y=0)
 	bi := ps.GetBodyInterface()
-	floor := bi.CreateBox(
+	box := jolt.CreateBox(
 		jolt.Vec3{X: 10, Y: 0.5, Z: 10}, // half-extents (creates 20x1x20 box)
-		jolt.Vec3{X: 0, Y: 0, Z: 0},     // position
-		false,                           // static
 	)
-	defer floor.Destroy()
+	defer box.Destroy()
+	platform := bi.CreateStaticBody(
+		box,
+		jolt.Vec3{X: 0, Y: 0, Z: 0}, // position
+	)
+	defer platform.Destroy()
 
 	// Create player character above the platform at Y=5 (will fall to ground)
 	character := ps.CreateCharacterVirtual(jolt.Vec3{X: 0, Y: 5, Z: 0})

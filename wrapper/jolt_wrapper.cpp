@@ -272,88 +272,46 @@ void JoltGetBodyPosition(const JoltBodyInterface bodyInterface,
 	*z = static_cast<float>(pos.GetZ());
 }
 
-JoltBodyID JoltCreateSphere(JoltBodyInterface bodyInterface,
-							float radius,
-							float x, float y, float z,
-							int isDynamic)
-{
-	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
+// ===== Shape Creation Functions =====
 
+JoltShape JoltCreateSphere(float radius)
+{
 	SphereShapeSettings sphere_settings(radius);
 	ShapeSettings::ShapeResult sphere_result = sphere_settings.Create();
 
-	BodyCreationSettings body_settings(
-		sphere_result.Get(),
-		RVec3(x, y, z),
-		Quat::sIdentity(),
-		isDynamic ? EMotionType::Dynamic : EMotionType::Static,
-		isDynamic ? Layers::MOVING : Layers::NON_MOVING);
+	// Shapes are ref-counted, AddRef to keep it alive
+	ShapeRefC shape = sphere_result.Get();
+	shape->AddRef();
 
-	Body *body = bi->CreateBody(body_settings);
-	bi->AddBody(body->GetID(), EActivation::Activate);
-
-	// Use smart pointer for exception safety, then release to caller
-	auto bodyIDPtr = std::make_unique<BodyID>(body->GetID());
-	return static_cast<JoltBodyID>(bodyIDPtr.release());
+	return static_cast<JoltShape>(const_cast<Shape*>(shape.GetPtr()));
 }
 
-JoltBodyID JoltCreateBox(JoltBodyInterface bodyInterface,
-						 float halfExtentX, float halfExtentY, float halfExtentZ,
-						 float x, float y, float z,
-						 int isDynamic)
+JoltShape JoltCreateBox(float halfExtentX, float halfExtentY, float halfExtentZ)
 {
-	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
-
 	BoxShapeSettings box_settings(Vec3(halfExtentX, halfExtentY, halfExtentZ));
 	ShapeSettings::ShapeResult box_result = box_settings.Create();
 
-	BodyCreationSettings body_settings(
-		box_result.Get(),
-		RVec3(x, y, z),
-		Quat::sIdentity(),
-		isDynamic ? EMotionType::Dynamic : EMotionType::Static,
-		isDynamic ? Layers::MOVING : Layers::NON_MOVING);
+	// Shapes are ref-counted, AddRef to keep it alive
+	ShapeRefC shape = box_result.Get();
+	shape->AddRef();
 
-	Body *body = bi->CreateBody(body_settings);
-	bi->AddBody(body->GetID(), EActivation::Activate);
-
-	// Use smart pointer for exception safety, then release to caller
-	auto bodyIDPtr = std::make_unique<BodyID>(body->GetID());
-	return static_cast<JoltBodyID>(bodyIDPtr.release());
+	return static_cast<JoltShape>(const_cast<Shape*>(shape.GetPtr()));
 }
 
-JoltBodyID JoltCreateCapsule(JoltBodyInterface bodyInterface,
-							  float halfHeight, float radius,
-							  float x, float y, float z,
-							  int isDynamic)
+JoltShape JoltCreateCapsule(float halfHeight, float radius)
 {
-	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
-
 	CapsuleShapeSettings capsule_settings(halfHeight, radius);
 	ShapeSettings::ShapeResult capsule_result = capsule_settings.Create();
 
-	BodyCreationSettings body_settings(
-		capsule_result.Get(),
-		RVec3(x, y, z),
-		Quat::sIdentity(),
-		isDynamic ? EMotionType::Dynamic : EMotionType::Static,
-		isDynamic ? Layers::MOVING : Layers::NON_MOVING);
+	// Shapes are ref-counted, AddRef to keep it alive
+	ShapeRefC shape = capsule_result.Get();
+	shape->AddRef();
 
-	Body *body = bi->CreateBody(body_settings);
-	bi->AddBody(body->GetID(), EActivation::Activate);
-
-	// Use smart pointer for exception safety, then release to caller
-	auto bodyIDPtr = std::make_unique<BodyID>(body->GetID());
-	return static_cast<JoltBodyID>(bodyIDPtr.release());
+	return static_cast<JoltShape>(const_cast<Shape*>(shape.GetPtr()));
 }
 
-JoltBodyID JoltCreateConvexHull(JoltBodyInterface bodyInterface,
-								const float* points, int numPoints,
-								float x, float y, float z,
-								int isDynamic)
+JoltShape JoltCreateConvexHull(const float* points, int numPoints)
 {
-	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
-
 	// Convert float array to Vec3 array
 	Array<Vec3> vertices;
 	vertices.reserve(numPoints);
@@ -364,29 +322,16 @@ JoltBodyID JoltCreateConvexHull(JoltBodyInterface bodyInterface,
 	ConvexHullShapeSettings hull_settings(vertices);
 	ShapeSettings::ShapeResult hull_result = hull_settings.Create();
 
-	BodyCreationSettings body_settings(
-		hull_result.Get(),
-		RVec3(x, y, z),
-		Quat::sIdentity(),
-		isDynamic ? EMotionType::Dynamic : EMotionType::Static,
-		isDynamic ? Layers::MOVING : Layers::NON_MOVING);
+	// Shapes are ref-counted, AddRef to keep it alive
+	ShapeRefC shape = hull_result.Get();
+	shape->AddRef();
 
-	Body *body = bi->CreateBody(body_settings);
-	bi->AddBody(body->GetID(), EActivation::Activate);
-
-	// Use smart pointer for exception safety, then release to caller
-	auto bodyIDPtr = std::make_unique<BodyID>(body->GetID());
-	return static_cast<JoltBodyID>(bodyIDPtr.release());
+	return static_cast<JoltShape>(const_cast<Shape*>(shape.GetPtr()));
 }
 
-JoltBodyID JoltCreateMesh(JoltBodyInterface bodyInterface,
-						  const float* vertices, int numVertices,
-						  const int* indices, int numIndices,
-						  float x, float y, float z,
-						  int isDynamic)
+JoltShape JoltCreateMesh(const float* vertices, int numVertices,
+							   const int* indices, int numIndices)
 {
-	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
-
 	// Create mesh shape with vertices and indices
 	TriangleList triangles;
 	triangles.reserve(numIndices / 3);
@@ -406,8 +351,31 @@ JoltBodyID JoltCreateMesh(JoltBodyInterface bodyInterface,
 	MeshShapeSettings mesh_settings(triangles);
 	ShapeSettings::ShapeResult mesh_result = mesh_settings.Create();
 
+	// Shapes are ref-counted, AddRef to keep it alive
+	ShapeRefC shape = mesh_result.Get();
+	shape->AddRef();
+
+	return static_cast<JoltShape>(const_cast<Shape*>(shape.GetPtr()));
+}
+
+void JoltDestroy(JoltShape shape)
+{
+	Shape* s = static_cast<Shape*>(shape);
+	s->Release();
+}
+
+// ===== Body Creation Functions =====
+
+JoltBodyID JoltCreateBody(JoltBodyInterface bodyInterface,
+						  JoltShape shape,
+						  float x, float y, float z,
+						  int isDynamic)
+{
+	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
+	const Shape *s = static_cast<const Shape *>(shape);
+
 	BodyCreationSettings body_settings(
-		mesh_result.Get(),
+		s,
 		RVec3(x, y, z),
 		Quat::sIdentity(),
 		isDynamic ? EMotionType::Dynamic : EMotionType::Static,
