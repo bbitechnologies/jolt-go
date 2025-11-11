@@ -96,6 +96,16 @@ func (cv *CharacterVirtual) GetGroundVelocity() Vec3 {
 	}
 }
 
+// SetPosition sets the character's position in the world
+func (cv *CharacterVirtual) SetPosition(position Vec3) {
+	C.JoltCharacterVirtualSetPosition(
+		cv.handle,
+		C.float(position.X),
+		C.float(position.Y),
+		C.float(position.Z),
+	)
+}
+
 // GetPosition returns the current position of the character
 func (cv *CharacterVirtual) GetPosition() Vec3 {
 	var x, y, z C.float

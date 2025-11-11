@@ -137,6 +137,13 @@ void JoltCharacterVirtualGetGroundVelocity(const JoltCharacterVirtual character,
 	*z = vel.GetZ();
 }
 
+void JoltCharacterVirtualSetPosition(JoltCharacterVirtual character,
+									 float x, float y, float z)
+{
+	CharacterVirtual* cv = static_cast<CharacterVirtual*>(character);
+	cv->SetPosition(RVec3(x, y, z));
+}
+
 void JoltCharacterVirtualGetPosition(const JoltCharacterVirtual character,
 									 float* x, float* y, float* z)
 {

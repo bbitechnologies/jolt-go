@@ -49,6 +49,10 @@ void JoltCharacterVirtualGetLinearVelocity(const JoltCharacterVirtual character,
 void JoltCharacterVirtualGetGroundVelocity(const JoltCharacterVirtual character,
                                            float* x, float* y, float* z);
 
+// Set the position of a virtual character
+void JoltCharacterVirtualSetPosition(JoltCharacterVirtual character,
+                                     float x, float y, float z);
+
 // Get the position of a virtual character
 void JoltCharacterVirtualGetPosition(const JoltCharacterVirtual character,
                                      float* x, float* y, float* z);
