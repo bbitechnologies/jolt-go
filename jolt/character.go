@@ -1,6 +1,6 @@
 package jolt
 
-// #include "wrapper/jolt_wrapper.h"
+// #include "wrapper/character.h"
 import "C"
 
 // CharacterVirtual represents a virtual character in the physics world

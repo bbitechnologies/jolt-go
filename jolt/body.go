@@ -1,6 +1,6 @@
 package jolt
 
-// #include "wrapper/jolt_wrapper.h"
+// #include "wrapper/body.h"
 import "C"
 
 // BodyInterface provides methods to create and manipulate physics bodies

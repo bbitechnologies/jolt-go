@@ -79,9 +79,9 @@ Want support for another platform? Open an issue or see [MAINTAINERS.md](MAINTAI
 ```
 Go Application
      ↓
-CGo Bindings (jolt.go)
+CGo Bindings (jolt/*.go)
      ↓
-C Wrapper (wrapper/jolt_wrapper.{cpp,h})
+C Wrapper (jolt/wrapper/*.{cpp,h})
      ↓
 Jolt Physics C++ Library
 ```

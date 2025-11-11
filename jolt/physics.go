@@ -1,6 +1,6 @@
 package jolt
 
-// #include "wrapper/jolt_wrapper.h"
+// #include "wrapper/physics.h"
 import "C"
 
 // PhysicsSystem represents a physics simulation world

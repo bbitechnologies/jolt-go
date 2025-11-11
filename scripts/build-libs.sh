@@ -59,8 +59,8 @@ info "Jolt version: $JOLT_VERSION"
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-WRAPPER_DIR="$REPO_ROOT/wrapper"
-LIB_DIR="$REPO_ROOT/lib"
+WRAPPER_DIR="$REPO_ROOT/jolt/wrapper"
+LIB_DIR="$REPO_ROOT/jolt/lib"
 
 # Determine what to build
 TARGET="${1:-all}"
@@ -98,19 +98,27 @@ build_darwin_arm64() {
 
     info "  Building wrapper..."
     cd "$WRAPPER_DIR"
-    clang++ -std=c++17 \
-        -I"$JOLT_SRC" \
-        -DNDEBUG \
-        -DJPH_DISABLE_CUSTOM_ALLOCATOR \
-        -DJPH_PROFILE_ENABLED \
-        -DJPH_DEBUG_RENDERER \
-        -DJPH_OBJECT_STREAM \
-        -c jolt_wrapper.cpp \
-        -o jolt_wrapper.o
-    ar rcs libjolt_wrapper.a jolt_wrapper.o
-    rm jolt_wrapper.o
 
-    info "  Copying to lib/darwin_arm64/..."
+    # Compile all wrapper source files (auto-discover .cpp files)
+    for src in *.cpp; do
+        if [ -f "$src" ]; then
+            clang++ -std=c++17 \
+                -I"$JOLT_SRC" \
+                -DNDEBUG \
+                -DJPH_DISABLE_CUSTOM_ALLOCATOR \
+                -DJPH_PROFILE_ENABLED \
+                -DJPH_DEBUG_RENDERER \
+                -DJPH_OBJECT_STREAM \
+                -c "$src" \
+                -o "${src%.cpp}.o"
+        fi
+    done
+
+    # Create static library from all object files
+    ar rcs libjolt_wrapper.a *.o
+    rm *.o
+
+    info "  Copying to $LIB_DIR/darwin_arm64..."
     mkdir -p "$LIB_DIR/darwin_arm64"
     cp libjolt_wrapper.a "$LIB_DIR/darwin_arm64/"
     cp "$BUILD_DIR/libJolt.a" "$LIB_DIR/darwin_arm64/"
@@ -181,5 +189,5 @@ success "All builds complete! 🎉"
 echo ""
 info "Next steps:"
 echo "  1. Test the binaries: go run example/main.go"
-echo "  2. Commit to repo: git add lib/ && git commit -m 'Update binaries for Jolt $JOLT_VERSION'"
+echo "  2. Commit to repo: git add jolt/lib/ && git commit -m 'Update binaries for Jolt $JOLT_VERSION'"
 echo ""

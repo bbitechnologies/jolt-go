@@ -8,7 +8,7 @@ jolt-go ships with pre-built static libraries for:
 - `darwin/arm64` (macOS Apple Silicon)
 - `linux/amd64` (Linux x86-64)
 
-These binaries are committed to the repository in the `lib/` directory, ensuring the package works immediately with `go get`.
+These binaries are committed to the repository in the `jolt/lib/` directory, ensuring the package works immediately with `go get`.
 
 **Current Jolt Physics Version:** v5.4.0
 
@@ -66,8 +66,8 @@ export JOLT_SRC=/path/to/JoltPhysics
 ### Build Output
 
 Binaries will be placed in:
-- `lib/{platform}/libJolt.a`
-- `lib/{platform}/libjolt_wrapper.a`
+- `jolt/lib/{platform}/libJolt.a`
+- `jolt/lib/{platform}/libjolt_wrapper.a`
 
 ## Testing Binaries
 
@@ -102,7 +102,7 @@ When updating to a new Jolt Physics version:
 
 4. **Commit and tag the binaries:**
    ```bash
-   git add lib/
+   git add jolt/lib/
    git commit -m "Update binaries to Jolt Physics v5.5.0"
    git tag v0.2.0
    git push origin main --tags

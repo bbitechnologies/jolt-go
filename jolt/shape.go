@@ -1,6 +1,6 @@
 package jolt
 
-// #include "wrapper/jolt_wrapper.h"
+// #include "wrapper/shape.h"
 import "C"
 
 // Shape represents collision geometry that can be used to create bodies

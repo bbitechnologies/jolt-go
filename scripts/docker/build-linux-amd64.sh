@@ -26,19 +26,25 @@ echo 'Building Jolt wrapper for linux/amd64...'
 # Build wrapper
 cd /build/wrapper
 
-g++ -std=c++17 \
-    -I/build/JoltPhysics \
-    -DNDEBUG \
-    -DJPH_DISABLE_CUSTOM_ALLOCATOR \
-    -DJPH_PROFILE_ENABLED \
-    -DJPH_DEBUG_RENDERER \
-    -DJPH_OBJECT_STREAM \
-    -fPIC \
-    -fno-lto \
-    -c jolt_wrapper.cpp \
-    -o jolt_wrapper.o
+# Compile all wrapper source files (auto-discover .cpp files)
+for src in *.cpp; do
+    if [ -f "$src" ]; then
+        g++ -std=c++17 \
+            -I/build/JoltPhysics \
+            -DNDEBUG \
+            -DJPH_DISABLE_CUSTOM_ALLOCATOR \
+            -DJPH_PROFILE_ENABLED \
+            -DJPH_DEBUG_RENDERER \
+            -DJPH_OBJECT_STREAM \
+            -fPIC \
+            -fno-lto \
+            -c "$src" \
+            -o "${src%.cpp}.o"
+    fi
+done
 
-ar rcs libjolt_wrapper.a jolt_wrapper.o
+# Create static library from all object files
+ar rcs libjolt_wrapper.a *.o
 
 echo 'Copying binaries to output...'
 

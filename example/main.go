@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/bbitechnologies/jolt-go"
+	"github.com/bbitechnologies/jolt-go/jolt"
 )
 
 const (

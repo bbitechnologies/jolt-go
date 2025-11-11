@@ -5,15 +5,13 @@ on:
     tags:
       - 'v*'  # Trigger on version tags (e.g., v0.1.0)
     paths:
-      - 'wrapper/**'
+      - 'jolt/**'
       - 'scripts/**'
-      - 'lib/**'
       - '.github/workflows/build-binaries.yml'
   pull_request:
     paths:
-      - 'wrapper/**'
+      - 'jolt/**'
       - 'scripts/**'
-      - 'lib/**'
   workflow_dispatch:  # Manual trigger
     inputs:
       jolt_version:
@@ -50,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: darwin-arm64-binaries
-          path: lib/darwin_arm64/
+          path: jolt/lib/darwin_arm64/
           retention-days: 7
 
   build-linux-amd64:
@@ -84,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-amd64-binaries
-          path: lib/linux_amd64/
+          path: jolt/lib/linux_amd64/
           retention-days: 7
 
   test-binaries:
@@ -107,14 +105,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: darwin-arm64-binaries
-          path: lib/darwin_arm64/
+          path: jolt/lib/darwin_arm64/
 
       - name: Download linux/amd64 binaries
         if: matrix.os == 'ubuntu-24.04'
         uses: actions/download-artifact@v4
         with:
           name: linux-amd64-binaries
-          path: lib/linux_amd64/
+          path: jolt/lib/linux_amd64/
 
       - name: Test example
         run: go run example/main.go

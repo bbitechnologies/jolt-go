@@ -1,6 +1,6 @@
 package jolt
 
-// #include "wrapper/jolt_wrapper.h"
+// #include "wrapper/core.h"
 import "C"
 import "fmt"
 

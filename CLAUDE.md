@@ -4,18 +4,17 @@
 
 Go bindings for Jolt Physics (C++ engine). Pre-built binaries included in repository. No user compilation required.
 
-**Architecture:** Go → CGO → C Wrapper (`wrapper/`) → Jolt Physics C++
+**Architecture:** Go → CGO → C Wrapper → Jolt Physics C++
 
 **Platforms:** macOS ARM64, Linux x86-64
 
 ## File Structure
 
-- `jolt.go` - Main entry point (Init/Shutdown)
 - `cgo.go` - Package documentation and CGO compiler flags
 - `cgo_{platform}_{arch}.go` - Platform-specific linker flags
-- `jolt_*.go` - Feature-specific Go APIs (body, character, physics system, vectors)
-- `wrapper/jolt_wrapper.{cpp,h}` - C wrapper around Jolt C++ API (opaque pointers)
-- `lib/{platform}/` - Pre-built static libraries (libJolt.a, libjolt_wrapper.a), committed to git
+- `jolt/*.go` - Feature-specific Go APIs (body, character, physics system, vectors)
+- `jolt/wrapper/*.{cpp,h}` - C wrapper around Jolt C++ API (opaque pointers)
+- `jolt/lib/{platform}/` - Pre-built static libraries (libJolt.a, libjolt_wrapper.a), committed to git
 - `scripts/build-libs.sh` - Builds binaries for all platforms
 - `scripts/docker/` - Docker build environment for Linux
 - `example/main.go` - Falling sphere demo
@@ -31,15 +30,15 @@ Go bindings for Jolt Physics (C++ engine). Pre-built binaries included in reposi
 
 ## Development Instructions
 
-### When Modifying Go API (`jolt_*.go` files)
-1. Add C wrapper function in `wrapper/jolt_wrapper.{cpp,h}` first
+### When Modifying Go API (`jolt/*.go` files)
+1. Add C wrapper function in `jolt/wrapper/*.{cpp,h}` first
 2. Use `extern "C"` and opaque pointers in wrapper
-3. Add Go functions in appropriate `jolt_*.go` file (body, character, physics system, etc.)
+3. Add Go functions in appropriate `jolt/*.go` file (body, character, physics system, etc.)
 4. Rebuild binaries: `./scripts/build-libs.sh all`
 5. Test: `go run example/main.go`
 6. Update README.md API section if adding public functions
 
-### When Modifying C Wrapper (`wrapper/`)
+### When Modifying C Wrapper (`jolt/wrapper/*.{cpp,h}` files)
 1. Keep flags matching Jolt build: `-DJPH_DISABLE_CUSTOM_ALLOCATOR -DJPH_PROFILE_ENABLED -DJPH_DEBUG_RENDERER -DJPH_OBJECT_STREAM`
 2. Return error codes (0=success, -1=fail), never throw exceptions
 3. Rebuild binaries for BOTH platforms
@@ -51,13 +50,13 @@ Go bindings for Jolt Physics (C++ engine). Pre-built binaries included in reposi
 3. Test: `go run example/main.go`
 4. Update version number in MAINTAINERS.md (line 13)
 5. Update README.md if new features exposed (line 10)
-6. Commit binaries: `git add lib/ && git commit -m "Update to Jolt vX.X.X"`
+6. Commit binaries: `git add jolt/lib/ && git commit -m "Update to Jolt vX.X.X"`
 7. Tag release: `git tag vX.X.X && git push origin main --tags`
 
 ### When Changing Build System (`scripts/`)
 1. Test darwin build: `./scripts/build-libs.sh darwin_arm64`
 2. Test linux build: `./scripts/build-libs.sh linux_amd64`
-3. Verify output in `lib/{platform}/`
+3. Verify output in `jolt/lib/{platform}/`
 4. Update MAINTAINERS.md if process changes
 
 ### When Adding Features
