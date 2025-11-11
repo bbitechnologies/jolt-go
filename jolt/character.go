@@ -135,3 +135,8 @@ func (cv *CharacterVirtual) SetShape(shape *Shape, maxPenetrationDepth float32) 
 		cv.ps.handle,
 	)
 }
+
+// PhysicsSystem returns the physics system that this character belongs to
+func (cv *CharacterVirtual) PhysicsSystem() *PhysicsSystem {
+	return cv.ps
+}
