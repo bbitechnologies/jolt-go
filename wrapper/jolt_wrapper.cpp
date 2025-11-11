@@ -358,7 +358,7 @@ JoltShape JoltCreateMesh(const float* vertices, int numVertices,
 	return static_cast<JoltShape>(const_cast<Shape*>(shape.GetPtr()));
 }
 
-void JoltDestroy(JoltShape shape)
+void JoltDestroyShape(JoltShape shape)
 {
 	Shape* s = static_cast<Shape*>(shape);
 	s->Release();
