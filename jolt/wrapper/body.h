@@ -7,6 +7,8 @@
 #ifndef JOLT_WRAPPER_BODY_H
 #define JOLT_WRAPPER_BODY_H
 
+#include "physics.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -15,6 +17,9 @@ extern "C" {
 typedef void* JoltBodyInterface;
 typedef void* JoltBodyID;
 typedef void* JoltShape;
+
+// Get the body interface for creating/manipulating bodies
+JoltBodyInterface JoltPhysicsSystemGetBodyInterface(JoltPhysicsSystem system);
 
 // Get the position of a body
 void JoltGetBodyPosition(const JoltBodyInterface bodyInterface,

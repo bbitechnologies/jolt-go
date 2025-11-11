@@ -162,6 +162,47 @@ func main() {
 	// Create player controller
 	controller := NewPlayerController(character)
 
+	// Demonstrate collision query functionality
+	fmt.Println("Collision Query Demo")
+	fmt.Println("==========================================================")
+	fmt.Println("Testing if a sphere at various positions collides with the platform...")
+	fmt.Println()
+
+	// Create a test sphere (radius 1.0)
+	testSphere := jolt.CreateSphere(1.0)
+	defer testSphere.Destroy()
+
+	// Test positions: above platform, intersecting platform, below platform
+	testPositions := []struct {
+		pos         jolt.Vec3
+		description string
+	}{
+		{jolt.Vec3{X: 0, Y: 3, Z: 0}, "Above platform (Y=3)"},
+		{jolt.Vec3{X: 0, Y: 1, Z: 0}, "Intersecting platform (Y=1)"},
+		{jolt.Vec3{X: 0, Y: 0, Z: 0}, "At platform surface (Y=0)"},
+		{jolt.Vec3{X: 0, Y: -1, Z: 0}, "Below platform (Y=-1)"},
+		{jolt.Vec3{X: 15, Y: 0, Z: 0}, "Outside platform bounds (X=15)"},
+	}
+
+	for _, test := range testPositions {
+		// Simple collision check
+		hasCollision := ps.CollideShape(testSphere, test.pos)
+		fmt.Printf("  %s: Collision=%v\n", test.description, hasCollision)
+
+		// Detailed collision check (get hit information)
+		if hasCollision {
+			hits := ps.CollideShapeGetHits(testSphere, test.pos, 10)
+			for i, hit := range hits {
+				fmt.Printf("    Hit %d: Contact=(%.2f, %.2f, %.2f), Depth=%.2f\n",
+					i+1, hit.ContactPoint.X, hit.ContactPoint.Y, hit.ContactPoint.Z, hit.PenetrationDepth)
+			}
+		}
+	}
+
+	fmt.Println()
+	fmt.Println("==========================================================")
+	fmt.Println()
+
 	// Simulate player input for demo purposes
 	fmt.Println("Player Controller Demo")
 	fmt.Println("==========================================================")

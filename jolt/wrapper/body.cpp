@@ -3,7 +3,9 @@
  */
 
 #include "body.h"
+#include "physics.h"
 #include <Jolt/Jolt.h>
+#include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyInterface.h>
@@ -17,6 +19,15 @@ namespace Layers
 	static constexpr ObjectLayer NON_MOVING = 0;
 	static constexpr ObjectLayer MOVING = 1;
 };
+
+JoltBodyInterface JoltPhysicsSystemGetBodyInterface(JoltPhysicsSystem system)
+{
+	PhysicsSystemWrapper *wrapper = static_cast<PhysicsSystemWrapper *>(system);
+	PhysicsSystem* ps = GetPhysicsSystem(wrapper);
+	BodyInterface* bi = &ps->GetBodyInterface();
+
+	return static_cast<JoltBodyInterface>(bi);
+}
 
 void JoltGetBodyPosition(const JoltBodyInterface bodyInterface,
 						 const JoltBodyID bodyID,

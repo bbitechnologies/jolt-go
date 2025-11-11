@@ -8,6 +8,12 @@ type BodyInterface struct {
 	handle C.JoltBodyInterface
 }
 
+// GetBodyInterface returns the interface for creating/manipulating bodies
+func (ps *PhysicsSystem) GetBodyInterface() *BodyInterface {
+	handle := C.JoltPhysicsSystemGetBodyInterface(ps.handle)
+	return &BodyInterface{handle: handle}
+}
+
 // BodyID uniquely identifies a physics body
 type BodyID struct {
 	handle C.JoltBodyID

@@ -158,12 +158,6 @@ void JoltPhysicsSystemUpdate(JoltPhysicsSystem system, float deltaTime)
 	wrapper->system->Update(deltaTime, 1, gTempAllocator.get(), gJobSystem.get());
 }
 
-JoltBodyInterface JoltPhysicsSystemGetBodyInterface(JoltPhysicsSystem system)
-{
-	PhysicsSystemWrapper *wrapper = static_cast<PhysicsSystemWrapper *>(system);
-	return static_cast<JoltBodyInterface>(&wrapper->system->GetBodyInterface());
-}
-
 // C++ only: Accessor functions for wrapper internals
 PhysicsSystem* GetPhysicsSystem(PhysicsSystemWrapper* wrapper)
 {

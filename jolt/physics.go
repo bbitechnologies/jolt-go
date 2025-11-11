@@ -23,9 +23,3 @@ func (ps *PhysicsSystem) Destroy() {
 func (ps *PhysicsSystem) Update(deltaTime float32) {
 	C.JoltPhysicsSystemUpdate(ps.handle, C.float(deltaTime))
 }
-
-// GetBodyInterface returns the interface for creating/manipulating bodies
-func (ps *PhysicsSystem) GetBodyInterface() *BodyInterface {
-	handle := C.JoltPhysicsSystemGetBodyInterface(ps.handle)
-	return &BodyInterface{handle: handle}
-}

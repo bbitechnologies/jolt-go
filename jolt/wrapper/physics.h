@@ -13,7 +13,6 @@ extern "C" {
 
 // Opaque pointer types
 typedef void* JoltPhysicsSystem;
-typedef void* JoltBodyInterface;
 
 // Create a new physics world
 JoltPhysicsSystem JoltCreatePhysicsSystem();
@@ -23,9 +22,6 @@ void JoltDestroyPhysicsSystem(JoltPhysicsSystem system);
 
 // Step the physics simulation by deltaTime seconds
 void JoltPhysicsSystemUpdate(JoltPhysicsSystem system, float deltaTime);
-
-// Get the body interface for creating/manipulating bodies
-JoltBodyInterface JoltPhysicsSystemGetBodyInterface(JoltPhysicsSystem system);
 
 #ifdef __cplusplus
 }
