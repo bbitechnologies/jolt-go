@@ -59,6 +59,16 @@ JoltGroundState JoltCharacterVirtualGetGroundState(const JoltCharacterVirtual ch
 // Check if character is supported (on ground or steep ground)
 int JoltCharacterVirtualIsSupported(const JoltCharacterVirtual character);
 
+// Set the shape of a virtual character
+// shape: new collision shape for the character
+// maxPenetrationDepth: maximum allowed penetration (typically 0.1f)
+// system: physics system reference
+typedef void* JoltShape;
+void JoltCharacterVirtualSetShape(JoltCharacterVirtual character,
+                                  JoltShape shape,
+                                  float maxPenetrationDepth,
+                                  JoltPhysicsSystem system);
+
 #ifdef __cplusplus
 }
 #endif

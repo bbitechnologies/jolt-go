@@ -159,3 +159,28 @@ int JoltCharacterVirtualIsSupported(const JoltCharacterVirtual character)
 	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
 	return cv->IsSupported() ? 1 : 0;
 }
+
+void JoltCharacterVirtualSetShape(JoltCharacterVirtual character,
+								  JoltShape shape,
+								  float maxPenetrationDepth,
+								  JoltPhysicsSystem system)
+{
+	CharacterVirtual* cv = static_cast<CharacterVirtual*>(character);
+	const Shape* s = static_cast<const Shape*>(shape);
+	PhysicsSystemWrapper* wrapper = static_cast<PhysicsSystemWrapper*>(system);
+
+	// Use MOVING layer for character (same as dynamic bodies)
+	BroadPhaseLayerFilterAdapter broad_phase_filter(GetObjectVsBroadPhaseLayerFilter(wrapper), Layers::MOVING);
+	ObjectLayerFilterAdapter object_layer_filter(GetObjectLayerPairFilter(wrapper), Layers::MOVING);
+
+	// Call SetShape with required filters
+	cv->SetShape(
+		s,
+		maxPenetrationDepth,
+		broad_phase_filter,
+		object_layer_filter,
+		{}, // Empty BodyFilter (collides with all bodies)
+		{}, // Empty ShapeFilter (collides with all shapes)
+		*gTempAllocator.get()
+	);
+}

@@ -123,3 +123,15 @@ func (cv *CharacterVirtual) IsSupported() bool {
 	result := C.JoltCharacterVirtualIsSupported(cv.handle)
 	return result != 0
 }
+
+// SetShape changes the collision shape of the character
+// shape: new collision shape for the character
+// maxPenetrationDepth: maximum allowed penetration depth (typically 0.1)
+func (cv *CharacterVirtual) SetShape(shape *Shape, maxPenetrationDepth float32) {
+	C.JoltCharacterVirtualSetShape(
+		cv.handle,
+		shape.handle,
+		C.float(maxPenetrationDepth),
+		cv.ps.handle,
+	)
+}
