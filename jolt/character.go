@@ -146,6 +146,12 @@ func (cv *CharacterVirtual) SetShape(shape *Shape, maxPenetrationDepth float32) 
 	)
 }
 
+// GetShape retrieves the current collision shape of the character
+func (cv *CharacterVirtual) GetShape() *Shape {
+	handle := C.JoltCharacterVirtualGetShape(cv.handle)
+	return &Shape{handle: handle}
+}
+
 // PhysicsSystem returns the physics system that this character belongs to
 func (cv *CharacterVirtual) PhysicsSystem() *PhysicsSystem {
 	return cv.ps

@@ -191,3 +191,10 @@ void JoltCharacterVirtualSetShape(JoltCharacterVirtual character,
 		*gTempAllocator.get()
 	);
 }
+
+// Get the shape of a virtual character
+JoltShape JoltCharacterVirtualGetShape(const JoltCharacterVirtual character)
+{
+	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
+	return const_cast<Shape*>(cv->GetShape());
+}

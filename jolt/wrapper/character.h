@@ -73,6 +73,9 @@ void JoltCharacterVirtualSetShape(JoltCharacterVirtual character,
                                   float maxPenetrationDepth,
                                   JoltPhysicsSystem system);
 
+// Get the shape of a virtual character
+JoltShape JoltCharacterVirtualGetShape(const JoltCharacterVirtual character);
+
 #ifdef __cplusplus
 }
 #endif
