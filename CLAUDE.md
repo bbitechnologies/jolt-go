@@ -10,8 +10,10 @@ Go bindings for Jolt Physics (C++ engine). Pre-built binaries included in reposi
 
 ## File Structure
 
-- `jolt.go` - Main Go API with CGO declarations
-- `jolt_{platform}_{arch}.go` - Platform-specific linker flags
+- `jolt.go` - Main entry point (Init/Shutdown)
+- `cgo.go` - Package documentation and CGO compiler flags
+- `cgo_{platform}_{arch}.go` - Platform-specific linker flags
+- `jolt_*.go` - Feature-specific Go APIs (body, character, physics system, vectors)
 - `wrapper/jolt_wrapper.{cpp,h}` - C wrapper around Jolt C++ API (opaque pointers)
 - `lib/{platform}/` - Pre-built static libraries (libJolt.a, libjolt_wrapper.a), committed to git
 - `scripts/build-libs.sh` - Builds binaries for all platforms
@@ -29,12 +31,13 @@ Go bindings for Jolt Physics (C++ engine). Pre-built binaries included in reposi
 
 ## Development Instructions
 
-### When Modifying Go API (`jolt.go`)
+### When Modifying Go API (`jolt_*.go` files)
 1. Add C wrapper function in `wrapper/jolt_wrapper.{cpp,h}` first
 2. Use `extern "C"` and opaque pointers in wrapper
-3. Rebuild binaries: `./scripts/build-libs.sh all`
-4. Test: `go run example/main.go`
-5. Update README.md API section if adding public functions
+3. Add Go functions in appropriate `jolt_*.go` file (body, character, physics system, etc.)
+4. Rebuild binaries: `./scripts/build-libs.sh all`
+5. Test: `go run example/main.go`
+6. Update README.md API section if adding public functions
 
 ### When Modifying C Wrapper (`wrapper/`)
 1. Keep flags matching Jolt build: `-DJPH_DISABLE_CUSTOM_ALLOCATOR -DJPH_PROFILE_ENABLED -DJPH_DEBUG_RENDERER -DJPH_OBJECT_STREAM`
