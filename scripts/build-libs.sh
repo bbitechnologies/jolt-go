@@ -165,6 +165,43 @@ build_linux_amd64() {
     ls -lh "$LIB_DIR/linux_amd64/"
 }
 
+build_linux_arm64() {
+    info "Building linux/arm64..."
+
+    # Check if Docker is available
+    if ! command -v docker &> /dev/null; then
+        error "Docker is required for Linux builds but is not installed"
+        exit 1
+    fi
+
+    info "  Building Docker image..."
+    docker build \
+        --platform linux/arm64 \
+        -f "$SCRIPT_DIR/docker/Dockerfile.linux-arm64" \
+        -t jolt-builder-linux-arm64 \
+        "$SCRIPT_DIR/docker"
+
+    info "  Running build in Docker container..."
+    mkdir -p "$LIB_DIR/linux_arm64"
+
+    # Copy wrapper files to a temp directory that we can mount
+    TEMP_WRAPPER=$(mktemp -d)
+    cp "$WRAPPER_DIR"/*.cpp "$WRAPPER_DIR"/*.h "$TEMP_WRAPPER/"
+
+    docker run --rm \
+        --platform linux/arm64 \
+        -v "$JOLT_SRC:/build/JoltPhysics" \
+        -v "$TEMP_WRAPPER:/build/wrapper" \
+        -v "$LIB_DIR/linux_arm64:/build/output" \
+        jolt-builder-linux-arm64
+
+    # Clean up temp directory
+    rm -rf "$TEMP_WRAPPER"
+
+    success "linux/arm64 build complete"
+    ls -lh "$LIB_DIR/linux_arm64/"
+}
+
 # Main build logic
 case "$TARGET" in
     darwin_arm64)
@@ -173,13 +210,17 @@ case "$TARGET" in
     linux_amd64)
         build_linux_amd64
         ;;
+    linux_arm64)
+        build_linux_arm64
+        ;;
     all)
         build_darwin_arm64
         build_linux_amd64
+        build_linux_arm64
         ;;
     *)
         error "Unknown target: $TARGET"
-        echo "Usage: $0 [darwin_arm64|linux_amd64|all]"
+        echo "Usage: $0 [darwin_arm64|linux_amd64|linux_arm64|all]"
         exit 1
         ;;
 esac

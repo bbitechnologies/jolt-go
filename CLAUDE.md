@@ -42,13 +42,13 @@ Go bindings for Jolt Physics (C++ engine). Pre-built binaries included in reposi
 1. Keep flags matching Jolt build: `-DJPH_DISABLE_CUSTOM_ALLOCATOR -DJPH_PROFILE_ENABLED -DJPH_DEBUG_RENDERER -DJPH_OBJECT_STREAM`
 2. Return error codes (0=success, -1=fail), never throw exceptions
 3. Rebuild binaries for BOTH platforms
-4. Update MAINTAINERS.md if changing build process
+4. Update CONTRIBUTORS.md if changing build process
 
 ### When Updating Jolt Physics Version
 1. Update `$JOLT_SRC` checkout to new version
 2. Rebuild: `./scripts/build-libs.sh all`
 3. Test: `go run example/main.go`
-4. Update version number in MAINTAINERS.md (line 13)
+4. Update version number in CONTRIBUTORS.md (line 13)
 5. Update README.md if new features exposed (line 10)
 6. Commit binaries: `git add jolt/lib/ && git commit -m "Update to Jolt vX.X.X"`
 7. Tag release: `git tag vX.X.X && git push origin main --tags`
@@ -57,7 +57,7 @@ Go bindings for Jolt Physics (C++ engine). Pre-built binaries included in reposi
 1. Test darwin build: `./scripts/build-libs.sh darwin_arm64`
 2. Test linux build: `./scripts/build-libs.sh linux_amd64`
 3. Verify output in `jolt/lib/{platform}/`
-4. Update MAINTAINERS.md if process changes
+4. Update CONTRIBUTORS.md if process changes
 
 ### When Adding Features
 1. Check if feature exists in upstream Jolt Physics
@@ -82,7 +82,7 @@ Go bindings for Jolt Physics (C++ engine). Pre-built binaries included in reposi
 - Updating Jolt Physics version (line 10)
 - Adding examples or usage patterns
 
-**MAINTAINERS.md** - Update when:
+**CONTRIBUTORS.md** - Update when:
 - Changing build process or scripts
 - Updating Jolt Physics version (line 13)
 - Modifying compiler flags
@@ -111,4 +111,4 @@ Go bindings for Jolt Physics (C++ engine). Pre-built binaries included in reposi
 
 **Prioritize maintainability.** Clear code > clever code.
 
-**When uncertain:** Check README.md (user view) or MAINTAINERS.md (build details).
+**When uncertain:** Check README.md (user view) or CONTRIBUTORS.md (build details).

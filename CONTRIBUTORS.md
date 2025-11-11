@@ -7,6 +7,7 @@ This guide is for contributors who need to rebuild the pre-built binaries for jo
 jolt-go ships with pre-built static libraries for:
 - `darwin/arm64` (macOS Apple Silicon)
 - `linux/amd64` (Linux x86-64)
+- `linux/arm64` (Linux ARM64)
 
 These binaries are committed to the repository in the `jolt/lib/` directory, ensuring the package works immediately with `go get`.
 
@@ -61,6 +62,9 @@ export JOLT_SRC=/path/to/JoltPhysics
 
 # Build linux/amd64 only (uses Docker)
 ./scripts/build-libs.sh linux_amd64
+
+# Build linux/arm64 only (uses Docker)
+./scripts/build-libs.sh linux_arm64
 ```
 
 ### Build Output

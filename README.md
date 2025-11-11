@@ -5,7 +5,7 @@ Go bindings for [Jolt Physics](https://github.com/jrouwe/JoltPhysics), a fast an
 ## Features
 
 - Pre-built binaries - no compilation required
-- Cross-platform support (macOS ARM64, Linux x86-64)
+- Cross-platform support (macOS ARM64, Linux x86-64, Linux ARM64)
 - Simple, idiomatic Go API
 - Built on Jolt Physics v5.4.0
 
@@ -68,11 +68,11 @@ See the [example](example/main.go) for a complete working demo.
 |---------------|--------------|--------|
 | macOS         | ARM64        | ✅     |
 | Linux         | x86-64       | ✅     |
-| Linux         | ARM64        | 🚧     |
+| Linux         | ARM64        | ✅     |
 | macOS         | x86-64       | 🚧     |
 | Windows       | x86-64       | 🚧     |
 
-Want support for another platform? Open an issue or see [MAINTAINERS.md](MAINTAINERS.md) for build instructions.
+Want support for another platform? Open an issue or see [CONTRIBUTORS.md](CONTRIBUTORS.md) for build instructions.
 
 ## Architecture
 
