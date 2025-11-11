@@ -65,6 +65,37 @@ JoltBodyID JoltCreateBox(JoltBodyInterface bodyInterface,
                          float x, float y, float z,
                          int isDynamic);
 
+// Create a capsule body
+// halfHeight: half-height of the cylindrical part
+// radius: radius of the capsule
+// isDynamic: 1 = dynamic (affected by forces), 0 = static (immovable)
+JoltBodyID JoltCreateCapsule(JoltBodyInterface bodyInterface,
+                              float halfHeight, float radius,
+                              float x, float y, float z,
+                              int isDynamic);
+
+// Create a convex hull body from an array of points
+// points: array of floats (x,y,z triplets)
+// numPoints: number of points (array size must be numPoints * 3)
+// isDynamic: 1 = dynamic (affected by forces), 0 = static (immovable)
+JoltBodyID JoltCreateConvexHull(JoltBodyInterface bodyInterface,
+                                const float* points, int numPoints,
+                                float x, float y, float z,
+                                int isDynamic);
+
+// Create a mesh body from vertices and indices
+// vertices: array of floats (x,y,z triplets)
+// numVertices: number of vertices (array size must be numVertices * 3)
+// indices: array of triangle indices (each triangle is 3 indices)
+// numIndices: number of indices (must be multiple of 3)
+// isDynamic: 1 = dynamic (affected by forces), 0 = static (immovable)
+// Note: Mesh shapes are typically used for static geometry
+JoltBodyID JoltCreateMesh(JoltBodyInterface bodyInterface,
+                          const float* vertices, int numVertices,
+                          const int* indices, int numIndices,
+                          float x, float y, float z,
+                          int isDynamic);
+
 // Destroy a body ID
 void JoltDestroyBodyID(JoltBodyID bodyID);
 
