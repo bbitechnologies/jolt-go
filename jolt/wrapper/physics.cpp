@@ -122,10 +122,11 @@ struct PhysicsSystemWrapper
 
 JoltPhysicsSystem JoltCreatePhysicsSystem()
 {
-	const uint cMaxBodies = 1024;
+	// ref: https://github.com/godotengine/godot/blob/e47fb8b8989fd5589c65c4b0ac980de2e936c041/modules/jolt_physics/jolt_project_settings.cpp#L71
+	const uint cMaxBodies = 10240;
 	const uint cNumBodyMutexes = 0;
-	const uint cMaxBodyPairs = 1024;
-	const uint cMaxContactConstraints = 1024;
+	const uint cMaxBodyPairs = 65536;
+	const uint cMaxContactConstraints = 20480;
 
 	// Create wrapper to hold PhysicsSystem and layer interfaces
 	auto wrapper = std::make_unique<PhysicsSystemWrapper>();
