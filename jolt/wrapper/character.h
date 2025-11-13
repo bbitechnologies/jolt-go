@@ -14,6 +14,7 @@ extern "C" {
 // Opaque pointer types
 typedef void* JoltCharacterVirtual;
 typedef void* JoltPhysicsSystem;
+typedef void* JoltShape;
 
 // Ground state enum (matches Jolt's EGroundState)
 typedef enum {
@@ -23,8 +24,9 @@ typedef enum {
     JoltGroundStateInAir = 3           // In the air, not touching anything
 } JoltGroundState;
 
-// Create a new virtual character at initial position (x, y, z)
+// Create a new virtual character with a shape at initial position (x, y, z)
 JoltCharacterVirtual JoltCreateCharacterVirtual(JoltPhysicsSystem system,
+                                              JoltShape shape,
                                               float x, float y, float z);
 
 // Destroy a virtual character
@@ -67,7 +69,6 @@ int JoltCharacterVirtualIsSupported(const JoltCharacterVirtual character);
 // shape: new collision shape for the character
 // maxPenetrationDepth: maximum allowed penetration (typically 0.1f)
 // system: physics system reference
-typedef void* JoltShape;
 void JoltCharacterVirtualSetShape(JoltCharacterVirtual character,
                                   JoltShape shape,
                                   float maxPenetrationDepth,

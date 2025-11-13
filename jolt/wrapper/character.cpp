@@ -54,16 +54,14 @@ private:
 };
 
 JoltCharacterVirtual JoltCreateCharacterVirtual(JoltPhysicsSystem system,
+											 JoltShape shape,
 											 float x, float y, float z)
 {
 	PhysicsSystemWrapper *wrapper = static_cast<PhysicsSystemWrapper *>(system);
-
-	// Create a capsule shape for the character (half-height 0.9m, radius 0.5m = ~1.8m tall human)
-	CapsuleShapeSettings capsule_settings(0.9f, 0.5f);
-	ShapeSettings::ShapeResult capsule_result = capsule_settings.Create();
+	const Shape* s = static_cast<const Shape*>(shape);
 
 	CharacterVirtualSettings settings;
-	settings.mShape = capsule_result.Get();
+	settings.mShape = s;
 	settings.mMaxSlopeAngle = DegreesToRadians(45.0f);
 	settings.mMass = 70.0f; // 70kg
 	settings.mMaxStrength = 100.0f;

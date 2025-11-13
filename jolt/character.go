@@ -38,10 +38,11 @@ func (gs GroundState) String() string {
 	}
 }
 
-// CreateCharacterVirtual creates a virtual character at the specified initial position
-func (ps *PhysicsSystem) CreateCharacterVirtual(position Vec3) *CharacterVirtual {
+// CreateCharacterVirtual creates a virtual character with the specified shape at the initial position
+func (ps *PhysicsSystem) CreateCharacterVirtual(shape *Shape, position Vec3) *CharacterVirtual {
 	handle := C.JoltCreateCharacterVirtual(
 		ps.handle,
+		shape.handle,
 		C.float(position.X),
 		C.float(position.Y),
 		C.float(position.Z),
