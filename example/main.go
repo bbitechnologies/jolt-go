@@ -189,12 +189,12 @@ func main() {
 
 	for _, test := range testPositions {
 		// Simple collision check
-		hasCollision := ps.CollideShape(testSphere, test.pos)
+		hasCollision := ps.CollideShape(testSphere, test.pos, 0)
 		fmt.Printf("  %s: Collision=%v\n", test.description, hasCollision)
 
 		// Detailed collision check (get hit information)
 		if hasCollision {
-			hits := ps.CollideShapeGetHits(testSphere, test.pos, 10)
+			hits := ps.CollideShapeGetHits(testSphere, test.pos, 10, 0)
 			for i, hit := range hits {
 				fmt.Printf("    Hit %d: Contact=(%.2f, %.2f, %.2f), Depth=%.2f\n",
 					i+1, hit.ContactPoint.X, hit.ContactPoint.Y, hit.ContactPoint.Z, hit.PenetrationDepth)

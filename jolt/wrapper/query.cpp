@@ -110,7 +110,7 @@ private:
 };
 
 int JoltCollideShape(JoltPhysicsSystem system, JoltShape shape,
-                     float posX, float posY, float posZ)
+                     float posX, float posY, float posZ, float collisionTolerance)
 {
 	PhysicsSystemWrapper* wrapper = static_cast<PhysicsSystemWrapper*>(system);
 	PhysicsSystem* ps = GetPhysicsSystem(wrapper);
@@ -128,6 +128,7 @@ int JoltCollideShape(JoltPhysicsSystem system, JoltShape shape,
 
 	// Setup collision settings
 	CollideShapeSettings settings;
+	settings.mCollisionTolerance = collisionTolerance;
 
 	// Perform collision query
 	query.CollideShape(
@@ -146,7 +147,7 @@ int JoltCollideShape(JoltPhysicsSystem system, JoltShape shape,
 
 int JoltCollideShapeGetHits(JoltPhysicsSystem system, JoltShape shape,
                             float posX, float posY, float posZ,
-                            JoltCollisionHit* outHits, int maxHits)
+                            JoltCollisionHit* outHits, int maxHits, float collisionTolerance)
 {
 	PhysicsSystemWrapper* wrapper = static_cast<PhysicsSystemWrapper*>(system);
 	PhysicsSystem* ps = GetPhysicsSystem(wrapper);
@@ -164,6 +165,7 @@ int JoltCollideShapeGetHits(JoltPhysicsSystem system, JoltShape shape,
 
 	// Setup collision settings
 	CollideShapeSettings settings;
+	settings.mCollisionTolerance = collisionTolerance;
 
 	// Perform collision query
 	query.CollideShape(

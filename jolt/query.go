@@ -16,6 +16,7 @@ type CollisionHit struct {
 // Parameters:
 //   - shape: The collision shape to test
 //   - position: Position in world space to place the shape
+//   - collisionTolerance: Distance threshold for collision detection in meters (use 0 for Jolt's default)
 //
 // Returns true if any collision is detected, false otherwise.
 //
@@ -23,16 +24,17 @@ type CollisionHit struct {
 //   sphere := jolt.CreateSphere(1.0)
 //   defer sphere.Destroy()
 //
-//   if ps.CollideShape(sphere, jolt.Vec3{X: 0, Y: 5, Z: 0}) {
+//   if ps.CollideShape(sphere, jolt.Vec3{X: 0, Y: 5, Z: 0}, 0) {
 //       fmt.Println("Collision detected!")
 //   }
-func (ps *PhysicsSystem) CollideShape(shape *Shape, position Vec3) bool {
+func (ps *PhysicsSystem) CollideShape(shape *Shape, position Vec3, collisionTolerance float32) bool {
 	result := C.JoltCollideShape(
 		ps.handle,
 		shape.handle,
 		C.float(position.X),
 		C.float(position.Y),
 		C.float(position.Z),
+		C.float(collisionTolerance),
 	)
 	return result != 0
 }
@@ -44,6 +46,7 @@ func (ps *PhysicsSystem) CollideShape(shape *Shape, position Vec3) bool {
 //   - shape: The collision shape to test
 //   - position: Position in world space to place the shape
 //   - maxHits: Maximum number of hits to return (limits memory allocation)
+//   - collisionTolerance: Distance threshold for collision detection in meters (use 0 for Jolt's default)
 //
 // Returns a slice of CollisionHit containing information about each collision.
 //
@@ -51,13 +54,13 @@ func (ps *PhysicsSystem) CollideShape(shape *Shape, position Vec3) bool {
 //   sphere := jolt.CreateSphere(1.0)
 //   defer sphere.Destroy()
 //
-//   hits := ps.CollideShapeGetHits(sphere, jolt.Vec3{X: 0, Y: 5, Z: 0}, 10)
+//   hits := ps.CollideShapeGetHits(sphere, jolt.Vec3{X: 0, Y: 5, Z: 0}, 10, 0)
 //   for _, hit := range hits {
 //       fmt.Printf("Hit body at %.2f, %.2f, %.2f (depth: %.2f)\n",
 //           hit.ContactPoint.X, hit.ContactPoint.Y, hit.ContactPoint.Z,
 //           hit.PenetrationDepth)
 //   }
-func (ps *PhysicsSystem) CollideShapeGetHits(shape *Shape, position Vec3, maxHits int) []CollisionHit {
+func (ps *PhysicsSystem) CollideShapeGetHits(shape *Shape, position Vec3, maxHits int, collisionTolerance float32) []CollisionHit {
 	if maxHits <= 0 {
 		return []CollisionHit{}
 	}
@@ -73,6 +76,7 @@ func (ps *PhysicsSystem) CollideShapeGetHits(shape *Shape, position Vec3, maxHit
 		C.float(position.Z),
 		&cHits[0],
 		C.int(maxHits),
+		C.float(collisionTolerance),
 	)
 
 	// Convert C results to Go
