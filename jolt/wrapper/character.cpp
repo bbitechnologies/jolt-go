@@ -67,7 +67,7 @@ JoltCharacterVirtual JoltCreateCharacterVirtual(JoltPhysicsSystem system,
 	settings.mMaxStrength = 100.0f;
 	settings.mCharacterPadding = 0.02f;
 	settings.mPenetrationRecoverySpeed = 1.0f;
-	settings.mPredictiveContactDistance = 0.0f;
+	settings.mPredictiveContactDistance = 0.1f;
 
 	// Create at specified position using smart pointer for exception safety
 	auto character = std::make_unique<CharacterVirtual>(&settings, RVec3(x, y, z), Quat::sIdentity(), GetPhysicsSystem(wrapper));
