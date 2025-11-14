@@ -27,18 +27,18 @@ typedef struct {
 
 // Check if a shape at a position collides with anything in the physics system
 // Returns 1 if collision detected, 0 if no collision
-// collisionTolerance: distance threshold for collision detection (use 0 for default)
+// penetrationTolerance: distance threshold for collision detection (use 0 for default)
 int JoltCollideShape(JoltPhysicsSystem system, JoltShape shape,
-                     float posX, float posY, float posZ, float collisionTolerance);
+                     float posX, float posY, float posZ, float penetrationTolerance);
 
 // Get all collision hits for a shape at a position
 // outHits: array to store results (allocated by caller)
 // maxHits: maximum number of hits to return
-// collisionTolerance: distance threshold for collision detection (use 0 for default)
+// penetrationTolerance: distance threshold for collision detection (use 0 for default)
 // Returns: actual number of hits found (may be less than maxHits)
 int JoltCollideShapeGetHits(JoltPhysicsSystem system, JoltShape shape,
                             float posX, float posY, float posZ,
-                            JoltCollisionHit* outHits, int maxHits, float collisionTolerance);
+                            JoltCollisionHit* outHits, int maxHits, float penetrationTolerance);
 
 #ifdef __cplusplus
 }

@@ -5,8 +5,8 @@ import "C"
 
 // CollisionHit contains information about a single collision detected during a shape query
 type CollisionHit struct {
-	BodyID          *BodyID // The body that was hit
-	ContactPoint    Vec3    // The contact point in world space
+	BodyID           *BodyID // The body that was hit
+	ContactPoint     Vec3    // The contact point in world space
 	PenetrationDepth float32 // How deep the shapes overlap (negative if separated)
 }
 
@@ -16,25 +16,26 @@ type CollisionHit struct {
 // Parameters:
 //   - shape: The collision shape to test
 //   - position: Position in world space to place the shape
-//   - collisionTolerance: Distance threshold for collision detection in meters (use 0 for Jolt's default)
+//   - penetrationTolerance: Distance threshold for collision detection in meters
 //
 // Returns true if any collision is detected, false otherwise.
 //
 // Example usage:
-//   sphere := jolt.CreateSphere(1.0)
-//   defer sphere.Destroy()
 //
-//   if ps.CollideShape(sphere, jolt.Vec3{X: 0, Y: 5, Z: 0}, 0) {
-//       fmt.Println("Collision detected!")
-//   }
-func (ps *PhysicsSystem) CollideShape(shape *Shape, position Vec3, collisionTolerance float32) bool {
+//	sphere := jolt.CreateSphere(1.0)
+//	defer sphere.Destroy()
+//
+//	if ps.CollideShape(sphere, jolt.Vec3{X: 0, Y: 5, Z: 0}, 0) {
+//	    fmt.Println("Collision detected!")
+//	}
+func (ps *PhysicsSystem) CollideShape(shape *Shape, position Vec3, penetrationTolerance float32) bool {
 	result := C.JoltCollideShape(
 		ps.handle,
 		shape.handle,
 		C.float(position.X),
 		C.float(position.Y),
 		C.float(position.Z),
-		C.float(collisionTolerance),
+		C.float(penetrationTolerance),
 	)
 	return result != 0
 }
@@ -46,21 +47,23 @@ func (ps *PhysicsSystem) CollideShape(shape *Shape, position Vec3, collisionTole
 //   - shape: The collision shape to test
 //   - position: Position in world space to place the shape
 //   - maxHits: Maximum number of hits to return (limits memory allocation)
-//   - collisionTolerance: Distance threshold for collision detection in meters (use 0 for Jolt's default)
+//   - penetrationTolerance: A factor that determines the accuracy of the penetration depth calculation.
+//     If the change of the squared distance is less than tolerance * current_penetration_depth^2 the algorithm will terminate. (unit: dimensionless)
 //
 // Returns a slice of CollisionHit containing information about each collision.
 //
 // Example usage:
-//   sphere := jolt.CreateSphere(1.0)
-//   defer sphere.Destroy()
 //
-//   hits := ps.CollideShapeGetHits(sphere, jolt.Vec3{X: 0, Y: 5, Z: 0}, 10, 0)
-//   for _, hit := range hits {
-//       fmt.Printf("Hit body at %.2f, %.2f, %.2f (depth: %.2f)\n",
-//           hit.ContactPoint.X, hit.ContactPoint.Y, hit.ContactPoint.Z,
-//           hit.PenetrationDepth)
-//   }
-func (ps *PhysicsSystem) CollideShapeGetHits(shape *Shape, position Vec3, maxHits int, collisionTolerance float32) []CollisionHit {
+//	sphere := jolt.CreateSphere(1.0)
+//	defer sphere.Destroy()
+//
+//	hits := ps.CollideShapeGetHits(sphere, jolt.Vec3{X: 0, Y: 5, Z: 0}, 10, 0)
+//	for _, hit := range hits {
+//	    fmt.Printf("Hit body at %.2f, %.2f, %.2f (depth: %.2f)\n",
+//	        hit.ContactPoint.X, hit.ContactPoint.Y, hit.ContactPoint.Z,
+//	        hit.PenetrationDepth)
+//	}
+func (ps *PhysicsSystem) CollideShapeGetHits(shape *Shape, position Vec3, maxHits int, penetrationTolerance float32) []CollisionHit {
 	if maxHits <= 0 {
 		return []CollisionHit{}
 	}
@@ -76,7 +79,7 @@ func (ps *PhysicsSystem) CollideShapeGetHits(shape *Shape, position Vec3, maxHit
 		C.float(position.Z),
 		&cHits[0],
 		C.int(maxHits),
-		C.float(collisionTolerance),
+		C.float(penetrationTolerance),
 	)
 
 	// Convert C results to Go
