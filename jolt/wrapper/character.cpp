@@ -196,3 +196,14 @@ JoltShape JoltCharacterVirtualGetShape(const JoltCharacterVirtual character)
 	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
 	return const_cast<Shape*>(cv->GetShape());
 }
+
+// Get the normal of the ground surface the character is standing on
+void JoltCharacterVirtualGetGroundNormal(const JoltCharacterVirtual character,
+										 float* x, float* y, float* z)
+{
+	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
+	Vec3 normal = cv->GetGroundNormal();
+	*x = normal.GetX();
+	*y = normal.GetY();
+	*z = normal.GetZ();
+}

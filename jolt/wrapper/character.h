@@ -77,6 +77,10 @@ void JoltCharacterVirtualSetShape(JoltCharacterVirtual character,
 // Get the shape of a virtual character
 JoltShape JoltCharacterVirtualGetShape(const JoltCharacterVirtual character);
 
+// Get the normal of the ground surface the character is standing on
+void JoltCharacterVirtualGetGroundNormal(const JoltCharacterVirtual character,
+                                         float* x, float* y, float* z);
+
 #ifdef __cplusplus
 }
 #endif

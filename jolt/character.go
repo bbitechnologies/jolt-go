@@ -157,3 +157,14 @@ func (cv *CharacterVirtual) GetShape() *Shape {
 func (cv *CharacterVirtual) PhysicsSystem() *PhysicsSystem {
 	return cv.ps
 }
+
+// GetGroundNormal returns the normal vector of the ground surface
+func (cv *CharacterVirtual) GetGroundNormal() Vec3 {
+	var x, y, z C.float
+	C.JoltCharacterVirtualGetGroundNormal(cv.handle, &x, &y, &z)
+	return Vec3{
+		X: float32(x),
+		Y: float32(y),
+		Z: float32(z),
+	}
+}
