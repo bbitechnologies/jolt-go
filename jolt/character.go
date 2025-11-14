@@ -168,3 +168,14 @@ func (cv *CharacterVirtual) GetGroundNormal() Vec3 {
 		Z: float32(z),
 	}
 }
+
+// GetGroundPosition returns the world position of the ground contact point
+func (cv *CharacterVirtual) GetGroundPosition() Vec3 {
+	var x, y, z C.float
+	C.JoltCharacterVirtualGetGroundPosition(cv.handle, &x, &y, &z)
+	return Vec3{
+		X: float32(x),
+		Y: float32(y),
+		Z: float32(z),
+	}
+}

@@ -207,3 +207,14 @@ void JoltCharacterVirtualGetGroundNormal(const JoltCharacterVirtual character,
 	*y = normal.GetY();
 	*z = normal.GetZ();
 }
+
+// Get the position of the ground contact point
+void JoltCharacterVirtualGetGroundPosition(const JoltCharacterVirtual character,
+										   float* x, float* y, float* z)
+{
+	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
+	RVec3 pos = cv->GetGroundPosition();
+	*x = static_cast<float>(pos.GetX());
+	*y = static_cast<float>(pos.GetY());
+	*z = static_cast<float>(pos.GetZ());
+}

@@ -81,6 +81,10 @@ JoltShape JoltCharacterVirtualGetShape(const JoltCharacterVirtual character);
 void JoltCharacterVirtualGetGroundNormal(const JoltCharacterVirtual character,
                                          float* x, float* y, float* z);
 
+// Get the position of the ground contact point
+void JoltCharacterVirtualGetGroundPosition(const JoltCharacterVirtual character,
+                                           float* x, float* y, float* z);
+
 #ifdef __cplusplus
 }
 #endif
