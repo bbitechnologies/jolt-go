@@ -2,7 +2,10 @@ package jolt
 
 // #include "wrapper/core.h"
 import "C"
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // Init initializes Jolt Physics (call once at startup)
 func Init() error {
@@ -16,4 +19,9 @@ func Init() error {
 // Shutdown cleans up Jolt resources (call once at exit)
 func Shutdown() {
 	C.JoltShutdown()
+}
+
+// DegreesToRadians converts degrees to radians
+func DegreesToRadians(degrees float32) float32 {
+	return degrees * math.Pi / 180.0
 }

@@ -24,9 +24,36 @@ typedef enum {
     JoltGroundStateInAir = 3           // In the air, not touching anything
 } JoltGroundState;
 
-// Create a new virtual character with a shape at initial position (x, y, z)
+// Back face mode enum (matches Jolt's EBackFaceMode)
+typedef enum {
+    JoltBackFaceModeIgnore = 0,        // Ignore all back facing surfaces
+    JoltBackFaceModeCollide = 1        // Collide with back facing surfaces
+} JoltBackFaceMode;
+
+// Character virtual settings structure
+typedef struct {
+    JoltShape shape;
+    float upX, upY, upZ;
+    float maxSlopeAngle;
+    float mass;
+    float maxStrength;
+    float shapeOffsetX, shapeOffsetY, shapeOffsetZ;
+    JoltBackFaceMode backFaceMode;
+    float predictiveContactDistance;
+    unsigned int maxCollisionIterations;
+    unsigned int maxConstraintIterations;
+    float minTimeRemaining;
+    float collisionTolerance;
+    float characterPadding;
+    unsigned int maxNumHits;
+    float hitReductionCosMaxAngle;
+    float penetrationRecoverySpeed;
+    int enhancedInternalEdgeRemoval;  // bool as int (0 or 1)
+} JoltCharacterVirtualSettings;
+
+// Create a new virtual character with settings at initial position (x, y, z)
 JoltCharacterVirtual JoltCreateCharacterVirtual(JoltPhysicsSystem system,
-                                              JoltShape shape,
+                                              const JoltCharacterVirtualSettings* settings,
                                               float x, float y, float z);
 
 // Destroy a virtual character

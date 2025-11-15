@@ -159,7 +159,10 @@ func main() {
 	// Create a capsule shape for the character (half-height 0.9m, radius 0.5m = ~1.8m tall human)
 	capsule := jolt.CreateCapsule(0.9, 0.5)
 	defer capsule.Destroy()
-	character := ps.CreateCharacterVirtual(capsule, jolt.Vec3{X: 0, Y: 5, Z: 0})
+
+	// Create character settings with defaults
+	charSettings := jolt.NewCharacterVirtualSettings(capsule)
+	character := ps.CreateCharacterVirtual(charSettings, jolt.Vec3{X: 0, Y: 5, Z: 0})
 	defer character.Destroy()
 
 	// Create player controller

@@ -54,21 +54,30 @@ private:
 };
 
 JoltCharacterVirtual JoltCreateCharacterVirtual(JoltPhysicsSystem system,
-											 JoltShape shape,
+											 const JoltCharacterVirtualSettings* goSettings,
 											 float x, float y, float z)
 {
 	PhysicsSystemWrapper *wrapper = static_cast<PhysicsSystemWrapper *>(system);
-	const Shape* s = static_cast<const Shape*>(shape);
+	const Shape* s = static_cast<const Shape*>(goSettings->shape);
 
 	CharacterVirtualSettings settings;
 	settings.mShape = s;
-	settings.mMaxSlopeAngle = DegreesToRadians(45.0f);
-	settings.mMass = 70.0f; // 70kg
-	settings.mMaxStrength = 100.0f;
-	settings.mCharacterPadding = 0.02f;
-	settings.mPenetrationRecoverySpeed = 1.0f;
-	settings.mPredictiveContactDistance = 0.1f;
-	settings.mEnhancedInternalEdgeRemoval = true;
+	settings.mUp = Vec3(goSettings->upX, goSettings->upY, goSettings->upZ);
+	settings.mMaxSlopeAngle = goSettings->maxSlopeAngle;
+	settings.mMass = goSettings->mass;
+	settings.mMaxStrength = goSettings->maxStrength;
+	settings.mShapeOffset = Vec3(goSettings->shapeOffsetX, goSettings->shapeOffsetY, goSettings->shapeOffsetZ);
+	settings.mBackFaceMode = static_cast<EBackFaceMode>(goSettings->backFaceMode);
+	settings.mPredictiveContactDistance = goSettings->predictiveContactDistance;
+	settings.mMaxCollisionIterations = goSettings->maxCollisionIterations;
+	settings.mMaxConstraintIterations = goSettings->maxConstraintIterations;
+	settings.mMinTimeRemaining = goSettings->minTimeRemaining;
+	settings.mCollisionTolerance = goSettings->collisionTolerance;
+	settings.mCharacterPadding = goSettings->characterPadding;
+	settings.mMaxNumHits = goSettings->maxNumHits;
+	settings.mHitReductionCosMaxAngle = goSettings->hitReductionCosMaxAngle;
+	settings.mPenetrationRecoverySpeed = goSettings->penetrationRecoverySpeed;
+	settings.mEnhancedInternalEdgeRemoval = goSettings->enhancedInternalEdgeRemoval != 0;
 
 	// Create at specified position using smart pointer for exception safety
 	auto character = std::make_unique<CharacterVirtual>(&settings, RVec3(x, y, z), Quat::sIdentity(), GetPhysicsSystem(wrapper));

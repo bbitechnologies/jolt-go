@@ -3,6 +3,97 @@ package jolt
 // #include "wrapper/character.h"
 import "C"
 
+// BackFaceMode controls how the character collides with back faces
+type BackFaceMode int
+
+const (
+	// BackFaceModeIgnore - Ignore all back facing surfaces
+	BackFaceModeIgnore BackFaceMode = 0
+	// BackFaceModeCollide - Collide with back facing surfaces
+	BackFaceModeCollide BackFaceMode = 1
+)
+
+// CharacterVirtualSettings configures a virtual character
+type CharacterVirtualSettings struct {
+	// Shape is the collision shape for the character (required)
+	Shape *Shape
+
+	// Up is the character's up direction (default: {0, 1, 0})
+	Up Vec3
+
+	// MaxSlopeAngle is the maximum slope angle in radians that the character can walk on (default: 50 degrees)
+	MaxSlopeAngle float32
+
+	// Mass is the character mass in kg, used to push down objects (default: 70.0)
+	Mass float32
+
+	// MaxStrength is the maximum force the character can push other bodies with in Newtons (default: 100.0)
+	MaxStrength float32
+
+	// ShapeOffset is an extra offset applied to the shape in local space (default: {0, 0, 0})
+	ShapeOffset Vec3
+
+	// BackFaceMode controls collision with back faces (default: BackFaceModeCollide)
+	BackFaceMode BackFaceMode
+
+	// PredictiveContactDistance is how far to scan outside the shape for contacts.
+	// 0 will cause the character to get stuck. Too high causes ghost collisions. (default: 0.1)
+	PredictiveContactDistance float32
+
+	// MaxCollisionIterations is the max amount of collision loops (default: 5)
+	MaxCollisionIterations uint32
+
+	// MaxConstraintIterations is how often to try stepping in constraint solving (default: 15)
+	MaxConstraintIterations uint32
+
+	// MinTimeRemaining is the early out condition - if this much time is left, we're done (default: 1.0e-4)
+	MinTimeRemaining float32
+
+	// CollisionTolerance is how far we're willing to penetrate geometry (default: 1.0e-3)
+	CollisionTolerance float32
+
+	// CharacterPadding is how far we try to stay away from geometry (default: 0.02)
+	CharacterPadding float32
+
+	// MaxNumHits is the max number of hits to collect to avoid excess contact points (default: 256)
+	MaxNumHits uint32
+
+	// HitReductionCosMaxAngle is cos(angle) for merging similar contact normals.
+	// Default is ~2.5 degrees (0.999). Set to -1 to turn off. (default: 0.999)
+	HitReductionCosMaxAngle float32
+
+	// PenetrationRecoverySpeed governs how fast penetration is resolved.
+	// 0 = nothing resolved, 1 = everything in one update (default: 1.0)
+	PenetrationRecoverySpeed float32
+
+	// EnhancedInternalEdgeRemoval removes ghost contacts with internal mesh edges.
+	// More expensive but smoother movement over convex edges. (default: false)
+	EnhancedInternalEdgeRemoval bool
+}
+
+// NewCharacterVirtualSettings creates settings with Jolt's default values
+func NewCharacterVirtualSettings(shape *Shape) *CharacterVirtualSettings {
+	return &CharacterVirtualSettings{
+		Shape:                       shape,
+		Up:                          Vec3{X: 0, Y: 1, Z: 0},
+		MaxSlopeAngle:               DegreesToRadians(50.0),
+		Mass:                        70.0,
+		MaxStrength:                 100.0,
+		ShapeOffset:                 Vec3{X: 0, Y: 0, Z: 0},
+		BackFaceMode:                BackFaceModeCollide,
+		PredictiveContactDistance:   0.1,
+		MaxCollisionIterations:      5,
+		MaxConstraintIterations:     15,
+		MinTimeRemaining:            1.0e-4,
+		CollisionTolerance:          1.0e-3,
+		CharacterPadding:            0.02,
+		MaxNumHits:                  256,
+		HitReductionCosMaxAngle:     0.999,
+		PenetrationRecoverySpeed:    1.0,
+		EnhancedInternalEdgeRemoval: false,
+	}
+}
+
 // CharacterVirtual represents a virtual character in the physics world
 type CharacterVirtual struct {
 	handle C.JoltCharacterVirtual
@@ -38,11 +129,39 @@ func (gs GroundState) String() string {
 	}
 }
 
-// CreateCharacterVirtual creates a virtual character with the specified shape at the initial position
-func (ps *PhysicsSystem) CreateCharacterVirtual(shape *Shape, position Vec3) *CharacterVirtual {
+// CreateCharacterVirtual creates a virtual character with the specified settings at the initial position
+func (ps *PhysicsSystem) CreateCharacterVirtual(settings *CharacterVirtualSettings, position Vec3) *CharacterVirtual {
+	// Convert Go settings to C settings
+	cSettings := C.JoltCharacterVirtualSettings{
+		shape:                       settings.Shape.handle,
+		upX:                         C.float(settings.Up.X),
+		upY:                         C.float(settings.Up.Y),
+		upZ:                         C.float(settings.Up.Z),
+		maxSlopeAngle:               C.float(settings.MaxSlopeAngle),
+		mass:                        C.float(settings.Mass),
+		maxStrength:                 C.float(settings.MaxStrength),
+		shapeOffsetX:                C.float(settings.ShapeOffset.X),
+		shapeOffsetY:                C.float(settings.ShapeOffset.Y),
+		shapeOffsetZ:                C.float(settings.ShapeOffset.Z),
+		backFaceMode:                C.JoltBackFaceMode(settings.BackFaceMode),
+		predictiveContactDistance:   C.float(settings.PredictiveContactDistance),
+		maxCollisionIterations:      C.uint(settings.MaxCollisionIterations),
+		maxConstraintIterations:     C.uint(settings.MaxConstraintIterations),
+		minTimeRemaining:            C.float(settings.MinTimeRemaining),
+		collisionTolerance:          C.float(settings.CollisionTolerance),
+		characterPadding:            C.float(settings.CharacterPadding),
+		maxNumHits:                  C.uint(settings.MaxNumHits),
+		hitReductionCosMaxAngle:     C.float(settings.HitReductionCosMaxAngle),
+		penetrationRecoverySpeed:    C.float(settings.PenetrationRecoverySpeed),
+		enhancedInternalEdgeRemoval: 0,
+	}
+	if settings.EnhancedInternalEdgeRemoval {
+		cSettings.enhancedInternalEdgeRemoval = 1
+	}
+
 	handle := C.JoltCreateCharacterVirtual(
 		ps.handle,
-		shape.handle,
+		&cSettings,
 		C.float(position.X),
 		C.float(position.Y),
 		C.float(position.Z),
