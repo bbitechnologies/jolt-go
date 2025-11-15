@@ -1,5 +1,7 @@
 package jolt
 
+import "math"
+
 // Vec3 represents a 3D vector
 type Vec3 struct {
 	X, Y, Z float32
@@ -23,4 +25,19 @@ func (v Vec3) Mul(scalar float32) Vec3 {
 // Dot returns the dot product of this vector with another vector
 func (v Vec3) Dot(other Vec3) float32 {
 	return v.X*other.X + v.Y*other.Y + v.Z*other.Z
+}
+
+// Length returns the magnitude (length) of the vector
+func (v Vec3) Length() float32 {
+	return float32(math.Sqrt(float64(v.X*v.X + v.Y*v.Y + v.Z*v.Z)))
+}
+
+// Normalize returns a unit vector in the same direction as this vector.
+// Returns a zero vector if the input vector has zero length.
+func (v Vec3) Normalize() Vec3 {
+	length := v.Length()
+	if length == 0 {
+		return Vec3{X: 0, Y: 0, Z: 0}
+	}
+	return Vec3{X: v.X / length, Y: v.Y / length, Z: v.Z / length}
 }
