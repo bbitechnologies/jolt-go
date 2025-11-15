@@ -252,3 +252,64 @@ void JoltCharacterVirtualGetGroundPosition(const JoltCharacterVirtual character,
 	*y = static_cast<float>(pos.GetY());
 	*z = static_cast<float>(pos.GetZ());
 }
+
+// Get the active contacts for the character
+int JoltCharacterVirtualGetActiveContacts(const JoltCharacterVirtual character,
+										  JoltCharacterContact* contacts,
+										  int maxContacts)
+{
+	const CharacterVirtual* cv = static_cast<const CharacterVirtual*>(character);
+	const CharacterVirtual::ContactList& activeContacts = cv->GetActiveContacts();
+
+	int numContacts = static_cast<int>(activeContacts.size());
+	int numToReturn = numContacts < maxContacts ? numContacts : maxContacts;
+
+	for (int i = 0; i < numToReturn; i++)
+	{
+		const CharacterVirtual::Contact& c = activeContacts[i];
+
+		// Copy position
+		contacts[i].positionX = static_cast<float>(c.mPosition.GetX());
+		contacts[i].positionY = static_cast<float>(c.mPosition.GetY());
+		contacts[i].positionZ = static_cast<float>(c.mPosition.GetZ());
+
+		// Copy linear velocity
+		contacts[i].linearVelocityX = c.mLinearVelocity.GetX();
+		contacts[i].linearVelocityY = c.mLinearVelocity.GetY();
+		contacts[i].linearVelocityZ = c.mLinearVelocity.GetZ();
+
+		// Copy contact normal
+		contacts[i].contactNormalX = c.mContactNormal.GetX();
+		contacts[i].contactNormalY = c.mContactNormal.GetY();
+		contacts[i].contactNormalZ = c.mContactNormal.GetZ();
+
+		// Copy surface normal
+		contacts[i].surfaceNormalX = c.mSurfaceNormal.GetX();
+		contacts[i].surfaceNormalY = c.mSurfaceNormal.GetY();
+		contacts[i].surfaceNormalZ = c.mSurfaceNormal.GetZ();
+
+		// Copy scalar fields
+		contacts[i].distance = c.mDistance;
+		contacts[i].fraction = c.mFraction;
+
+		// Create a copy of the BodyID for the Go layer
+		if (c.mBodyB.IsInvalid())
+		{
+			contacts[i].bodyB = nullptr;
+		}
+		else
+		{
+			contacts[i].bodyB = new BodyID(c.mBodyB);
+		}
+
+		contacts[i].userData = c.mUserData;
+
+		// Copy bool fields (as int)
+		contacts[i].isSensorB = c.mIsSensorB ? 1 : 0;
+		contacts[i].hadCollision = c.mHadCollision ? 1 : 0;
+		contacts[i].wasDiscarded = c.mWasDiscarded ? 1 : 0;
+		contacts[i].canPushCharacter = c.mCanPushCharacter ? 1 : 0;
+	}
+
+	return numToReturn;
+}

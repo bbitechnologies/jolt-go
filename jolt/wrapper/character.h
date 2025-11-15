@@ -15,6 +15,7 @@ extern "C" {
 typedef void* JoltCharacterVirtual;
 typedef void* JoltPhysicsSystem;
 typedef void* JoltShape;
+typedef void* JoltBodyID;
 
 // Ground state enum (matches Jolt's EGroundState)
 typedef enum {
@@ -29,6 +30,28 @@ typedef enum {
     JoltBackFaceModeIgnore = 0,        // Ignore all back facing surfaces
     JoltBackFaceModeCollide = 1        // Collide with back facing surfaces
 } JoltBackFaceMode;
+
+// Character contact settings structure
+typedef struct {
+    int canPushCharacter;        // bool as int (0 or 1)
+    int canReceiveImpulses;      // bool as int (0 or 1)
+} JoltCharacterContactSettings;
+
+// Character contact structure (subset of Jolt's CharacterVirtual::Contact)
+typedef struct {
+    float positionX, positionY, positionZ;              // Position where the character makes contact
+    float linearVelocityX, linearVelocityY, linearVelocityZ;  // Velocity of the contact point
+    float contactNormalX, contactNormalY, contactNormalZ;     // Contact normal, pointing towards the character
+    float surfaceNormalX, surfaceNormalY, surfaceNormalZ;     // Surface normal of the contact
+    float distance;                                     // Distance to contact (<= 0 means actual contact, > 0 means predictive)
+    float fraction;                                     // Fraction along the path where this contact takes place
+    JoltBodyID bodyB;                                   // ID of body we're colliding with
+    unsigned long long userData;                        // User data of B
+    int isSensorB;                                      // If B is a sensor (bool as int)
+    int hadCollision;                                   // If the character actually collided (bool as int)
+    int wasDiscarded;                                   // If contact was discarded (bool as int)
+    int canPushCharacter;                               // When true, velocity can push character (bool as int)
+} JoltCharacterContact;
 
 // Character virtual settings structure
 typedef struct {
@@ -118,6 +141,14 @@ void JoltCharacterVirtualGetGroundNormal(const JoltCharacterVirtual character,
 // Get the position of the ground contact point
 void JoltCharacterVirtualGetGroundPosition(const JoltCharacterVirtual character,
                                            float* x, float* y, float* z);
+
+// Get the active contacts for the character
+// contacts: pointer to array to store contacts (must be pre-allocated)
+// maxContacts: maximum number of contacts to return
+// Returns: actual number of contacts returned
+int JoltCharacterVirtualGetActiveContacts(const JoltCharacterVirtual character,
+                                          JoltCharacterContact* contacts,
+                                          int maxContacts);
 
 #ifdef __cplusplus
 }

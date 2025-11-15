@@ -13,6 +13,34 @@ const (
 	BackFaceModeCollide BackFaceMode = 1
 )
 
+// CharacterContact represents a collision contact for a virtual character
+type CharacterContact struct {
+	// Position where the character makes contact
+	Position Vec3
+	// LinearVelocity is the velocity of the contact point
+	LinearVelocity Vec3
+	// ContactNormal is the contact normal, pointing towards the character
+	ContactNormal Vec3
+	// SurfaceNormal is the surface normal of the contact
+	SurfaceNormal Vec3
+	// Distance to the contact (<= 0 means actual contact, > 0 means predictive)
+	Distance float32
+	// Fraction along the path where this contact takes place
+	Fraction float32
+	// BodyB is the ID of the body we're colliding with (nil if invalid)
+	BodyB *BodyID
+	// UserData is the user data of the body
+	UserData uint64
+	// IsSensorB indicates if the body is a sensor
+	IsSensorB bool
+	// HadCollision indicates if the character actually collided with the contact
+	HadCollision bool
+	// WasDiscarded indicates if the contact was discarded
+	WasDiscarded bool
+	// CanPushCharacter indicates if the velocity of the contact point can push the character
+	CanPushCharacter bool
+}
+
 // CharacterVirtualSettings configures a virtual character
 type CharacterVirtualSettings struct {
 	// Shape is the collision shape for the character (required)
@@ -313,4 +341,62 @@ func (cv *CharacterVirtual) GetGroundPosition() Vec3 {
 		Y: float32(y),
 		Z: float32(z),
 	}
+}
+
+// GetActiveContacts returns the list of active contacts for the character
+// maxContacts specifies the maximum number of contacts to retrieve (typically 256)
+func (cv *CharacterVirtual) GetActiveContacts(maxContacts int) []CharacterContact {
+	// Allocate C array for contacts
+	cContacts := make([]C.JoltCharacterContact, maxContacts)
+
+	// Call C function
+	numContacts := int(C.JoltCharacterVirtualGetActiveContacts(
+		cv.handle,
+		&cContacts[0],
+		C.int(maxContacts),
+	))
+
+	// Convert C contacts to Go contacts
+	contacts := make([]CharacterContact, numContacts)
+	for i := 0; i < numContacts; i++ {
+		c := &cContacts[i]
+
+		var bodyB *BodyID
+		if c.bodyB != nil {
+			bodyB = &BodyID{handle: c.bodyB}
+		}
+
+		contacts[i] = CharacterContact{
+			Position: Vec3{
+				X: float32(c.positionX),
+				Y: float32(c.positionY),
+				Z: float32(c.positionZ),
+			},
+			LinearVelocity: Vec3{
+				X: float32(c.linearVelocityX),
+				Y: float32(c.linearVelocityY),
+				Z: float32(c.linearVelocityZ),
+			},
+			ContactNormal: Vec3{
+				X: float32(c.contactNormalX),
+				Y: float32(c.contactNormalY),
+				Z: float32(c.contactNormalZ),
+			},
+			SurfaceNormal: Vec3{
+				X: float32(c.surfaceNormalX),
+				Y: float32(c.surfaceNormalY),
+				Z: float32(c.surfaceNormalZ),
+			},
+			Distance:         float32(c.distance),
+			Fraction:         float32(c.fraction),
+			BodyB:            bodyB,
+			UserData:         uint64(c.userData),
+			IsSensorB:        c.isSensorB != 0,
+			HadCollision:     c.hadCollision != 0,
+			WasDiscarded:     c.wasDiscarded != 0,
+			CanPushCharacter: c.canPushCharacter != 0,
+		}
+	}
+
+	return contacts
 }
