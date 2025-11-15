@@ -50,6 +50,22 @@ func (ps *PhysicsSystem) CreateCharacterVirtual(shape *Shape, position Vec3) *Ch
 	return &CharacterVirtual{handle: handle, ps: ps}
 }
 
+// Update advances the character simulation using the current velocity
+// This is the basic update that moves the character according to its velocity and handles collisions.
+// Note: You must apply gravity to the velocity yourself before calling this.
+// deltaTime: duration of simulation step in seconds
+// gravity: acceleration vector (e.g., Vec3{0, -9.81, 0} for Earth gravity) - applied when standing on objects
+func (cv *CharacterVirtual) Update(deltaTime float32, gravity Vec3) {
+	C.JoltCharacterVirtualUpdate(
+		cv.handle,
+		cv.ps.handle,
+		C.float(deltaTime),
+		C.float(gravity.X),
+		C.float(gravity.Y),
+		C.float(gravity.Z),
+	)
+}
+
 // ExtendedUpdate advances the character simulation with combined movement logic
 // Combines Update, StickToFloor, and WalkStairs into a unified operation
 // deltaTime: duration of simulation step in seconds

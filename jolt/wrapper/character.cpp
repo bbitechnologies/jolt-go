@@ -80,6 +80,30 @@ void JoltDestroyCharacterVirtual(JoltCharacterVirtual character)
 	delete cv;
 }
 
+void JoltCharacterVirtualUpdate(JoltCharacterVirtual character,
+								JoltPhysicsSystem system,
+								float deltaTime,
+								float gravityX, float gravityY, float gravityZ)
+{
+	CharacterVirtual* cv = static_cast<CharacterVirtual*>(character);
+	PhysicsSystemWrapper* wrapper = static_cast<PhysicsSystemWrapper*>(system);
+
+	// Use MOVING layer for character (same as dynamic bodies)
+	BroadPhaseLayerFilterAdapter broad_phase_filter(GetObjectVsBroadPhaseLayerFilter(wrapper), Layers::MOVING);
+	ObjectLayerFilterAdapter object_layer_filter(GetObjectLayerPairFilter(wrapper), Layers::MOVING);
+
+	// Call basic Update with gravity vector and layer filters
+	cv->Update(
+		deltaTime,
+		Vec3(gravityX, gravityY, gravityZ),
+		broad_phase_filter,
+		object_layer_filter,
+		{}, // Empty BodyFilter (collides with all bodies)
+		{}, // Empty ShapeFilter (collides with all shapes)
+		*gTempAllocator.get()
+	);
+}
+
 void JoltCharacterVirtualExtendedUpdate(JoltCharacterVirtual character,
 										JoltPhysicsSystem system,
 										float deltaTime,

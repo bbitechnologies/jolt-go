@@ -32,6 +32,13 @@ JoltCharacterVirtual JoltCreateCharacterVirtual(JoltPhysicsSystem system,
 // Destroy a virtual character
 void JoltDestroyCharacterVirtual(JoltCharacterVirtual character);
 
+// Update virtual character (basic update - moves character according to velocity and handles collision)
+// gravityX/Y/Z: gravity vector applied when character stands on another object
+void JoltCharacterVirtualUpdate(JoltCharacterVirtual character,
+                                JoltPhysicsSystem system,
+                                float deltaTime,
+                                float gravityX, float gravityY, float gravityZ);
+
 // Update virtual character with extended update (combines Update, StickToFloor, WalkStairs)
 // gravityX/Y/Z: gravity vector applied when character stands on another object
 void JoltCharacterVirtualExtendedUpdate(JoltCharacterVirtual character,
