@@ -124,6 +124,18 @@ void JoltDeactivateBody(JoltBodyInterface bodyInterface, JoltBodyID bodyID)
 	bi->DeactivateBody(*bid);
 }
 
+void JoltSetBodyShape(JoltBodyInterface bodyInterface,
+					 JoltBodyID bodyID,
+					 JoltShape shape,
+					 int updateMassProperties)
+{
+	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
+	const BodyID *bid = static_cast<const BodyID *>(bodyID);
+	const Shape *s = static_cast<const Shape *>(shape);
+
+	bi->SetShape(*bid, s, updateMassProperties != 0, EActivation::Activate);
+}
+
 void JoltDestroyBodyID(JoltBodyID bodyID)
 {
 	BodyID *bid = static_cast<BodyID *>(bodyID);

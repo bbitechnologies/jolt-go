@@ -51,6 +51,12 @@ void JoltActivateBody(JoltBodyInterface bodyInterface, JoltBodyID bodyID);
 // Deactivate a body (removes from active simulation)
 void JoltDeactivateBody(JoltBodyInterface bodyInterface, JoltBodyID bodyID);
 
+// Set the shape of a body
+void JoltSetBodyShape(JoltBodyInterface bodyInterface,
+                     JoltBodyID bodyID,
+                     JoltShape shape,
+                     int updateMassProperties);
+
 // Destroy a body ID
 void JoltDestroyBodyID(JoltBodyID bodyID);
 

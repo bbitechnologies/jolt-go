@@ -106,3 +106,19 @@ func (bi *BodyInterface) ActivateBody(bodyID *BodyID) {
 func (bi *BodyInterface) DeactivateBody(bodyID *BodyID) {
 	C.JoltDeactivateBody(bi.handle, bodyID.handle)
 }
+
+// SetShape changes the collision shape of a body
+//
+// Parameters:
+//   - bodyID: The body to modify
+//   - shape: The new collision shape
+//   - updateMassProperties: If true, recalculates mass/inertia from the new shape
+//
+// Note: This automatically activates the body
+func (bi *BodyInterface) SetShape(bodyID *BodyID, shape *Shape, updateMassProperties bool) {
+	update := C.int(0)
+	if updateMassProperties {
+		update = C.int(1)
+	}
+	C.JoltSetBodyShape(bi.handle, bodyID.handle, shape.handle, update)
+}
