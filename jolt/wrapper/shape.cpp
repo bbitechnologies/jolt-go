@@ -9,6 +9,9 @@
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
 #include <Jolt/Physics/Collision/Shape/MeshShape.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/Shape/SubShapeID.h>
 
 using namespace JPH;
 
@@ -100,4 +103,29 @@ void JoltDestroyShape(JoltShape shape)
 {
 	Shape* s = static_cast<Shape*>(shape);
 	s->Release();
+}
+
+int JoltShapeCastRay(JoltShape shape,
+                     float originX, float originY, float originZ,
+                     float directionX, float directionY, float directionZ,
+                     int backfaceMode, int treatConvexAsSolid,
+                     float* outFraction)
+{
+	Shape* s = static_cast<Shape*>(shape);
+	if (!s) return 0;
+
+	// Create the ray (convert to single precision RayCast)
+	RayCast ray(Vec3(originX, originY, originZ), Vec3(directionX, directionY, directionZ));
+
+	// Create SubShapeIDCreator for tracking hierarchical shape IDs
+	SubShapeIDCreator sub_shape_creator;
+
+	// Cast the ray
+	RayCastResult result;
+	if (s->CastRay(ray, sub_shape_creator, result)) {
+		*outFraction = result.mFraction;
+		return 1; // Hit
+	}
+
+	return 0; // No hit
 }

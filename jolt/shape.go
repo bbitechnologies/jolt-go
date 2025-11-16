@@ -86,3 +86,83 @@ func CreateMesh(vertices []Vec3, indices []int32) *Shape {
 	)
 	return &Shape{handle: handle}
 }
+
+// RRayCast represents a ray for raycasting against shapes
+type RRayCast struct {
+	Origin    Vec3 // Starting point of the ray
+	Direction Vec3 // Direction vector (length determines max distance)
+}
+
+// BackfaceMode determines how backfaces are handled during raycasting
+type BackfaceMode int
+
+const (
+	BackfaceModeIgnore         BackfaceMode = 0 // Ignore backfaces (default)
+	BackfaceModeCollideWithAll BackfaceMode = 1 // Collide with both front and backfaces
+)
+
+// RayCastSettings contains settings for shape raycasting
+type RayCastSettings struct {
+	BackfaceMode       BackfaceMode // How to handle backfaces
+	TreatConvexAsSolid bool         // Treat convex shapes as solid (true) or hollow (false)
+}
+
+// DefaultRayCastSettings returns default raycast settings
+func DefaultRayCastSettings() RayCastSettings {
+	return RayCastSettings{
+		BackfaceMode:       BackfaceModeIgnore,
+		TreatConvexAsSolid: true,
+	}
+}
+
+// RayCastResult contains the result of a shape raycast
+type RayCastResult struct {
+	Fraction float32 // Fraction along the ray where hit occurred [0, 1]
+}
+
+// CastRay casts a ray against this shape and returns the hit result
+// Returns true if the ray hit the shape, false otherwise
+//
+// Example:
+//
+//	ray := jolt.RRayCast{
+//	    Origin:    jolt.Vec3{X: 0, Y: 10, Z: 0},
+//	    Direction: jolt.Vec3{X: 0, Y: -20, Z: 0}, // 20 units down
+//	}
+//	settings := jolt.DefaultRayCastSettings()
+//	result := jolt.RayCastResult{}
+//
+//	if shape.CastRay(ray, settings, &result) {
+//	    hitDistance := result.Fraction * 20.0 // Distance along ray
+//	    fmt.Printf("Hit at distance: %f\n", hitDistance)
+//	}
+func (s *Shape) CastRay(ray RRayCast, settings RayCastSettings, result *RayCastResult) bool {
+	var cFraction C.float
+
+	hit := C.JoltShapeCastRay(
+		s.handle,
+		C.float(ray.Origin.X),
+		C.float(ray.Origin.Y),
+		C.float(ray.Origin.Z),
+		C.float(ray.Direction.X),
+		C.float(ray.Direction.Y),
+		C.float(ray.Direction.Z),
+		C.int(settings.BackfaceMode),
+		C.int(boolToInt(settings.TreatConvexAsSolid)),
+		&cFraction,
+	)
+
+	if hit != 0 {
+		result.Fraction = float32(cFraction)
+		return true
+	}
+	return false
+}
+
+// Helper function to convert bool to int
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}

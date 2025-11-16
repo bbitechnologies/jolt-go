@@ -33,6 +33,15 @@ JoltShape JoltCreateMesh(const float* vertices, int numVertices,
 // Destroy a shape
 void JoltDestroyShape(JoltShape shape);
 
+// Cast a ray against a shape
+// Returns 1 if hit, 0 if miss
+// outFraction: receives the fraction along the ray where the hit occurred [0, 1]
+int JoltShapeCastRay(JoltShape shape,
+                     float originX, float originY, float originZ,
+                     float directionX, float directionY, float directionZ,
+                     int backfaceMode, int treatConvexAsSolid,
+                     float* outFraction);
+
 #ifdef __cplusplus
 }
 #endif
