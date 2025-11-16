@@ -65,6 +65,88 @@ JoltBodyID JoltCreateBody(JoltBodyInterface bodyInterface,
 	return static_cast<JoltBodyID>(bodyIDPtr.release());
 }
 
+void JoltSetBodyPosition(JoltBodyInterface bodyInterface,
+						 JoltBodyID bodyID,
+						 float x, float y, float z)
+{
+	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
+	const BodyID *bid = static_cast<const BodyID *>(bodyID);
+
+	bi->SetPosition(*bid, RVec3(x, y, z), EActivation::DontActivate);
+}
+
+JoltBodyID JoltCreateBodyWithMotionType(JoltBodyInterface bodyInterface,
+										JoltShape shape,
+										float x, float y, float z,
+										JoltMotionType motionType,
+										int isSensor)
+{
+	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
+	const Shape *s = static_cast<const Shape *>(shape);
+
+	// Convert motion type
+	EMotionType joltMotionType;
+	ObjectLayer layer;
+	switch (motionType)
+	{
+	case JoltMotionTypeStatic:
+		joltMotionType = EMotionType::Static;
+		layer = Layers::NON_MOVING;
+		break;
+	case JoltMotionTypeKinematic:
+		joltMotionType = EMotionType::Kinematic;
+		layer = Layers::MOVING;
+		break;
+	case JoltMotionTypeDynamic:
+		joltMotionType = EMotionType::Dynamic;
+		layer = Layers::MOVING;
+		break;
+	default:
+		joltMotionType = EMotionType::Static;
+		layer = Layers::NON_MOVING;
+		break;
+	}
+
+	BodyCreationSettings body_settings(
+		s,
+		RVec3(x, y, z),
+		Quat::sIdentity(),
+		joltMotionType,
+		layer);
+
+	// Set sensor flag if requested
+	body_settings.mIsSensor = (isSensor != 0);
+
+	Body *body = bi->CreateBody(body_settings);
+	if (!body)
+	{
+		return nullptr;
+	}
+
+	// Don't activate yet - caller will activate when ready
+	bi->AddBody(body->GetID(), EActivation::DontActivate);
+
+	// Use smart pointer for exception safety, then release to caller
+	auto bodyIDPtr = std::make_unique<BodyID>(body->GetID());
+	return static_cast<JoltBodyID>(bodyIDPtr.release());
+}
+
+void JoltActivateBody(JoltBodyInterface bodyInterface, JoltBodyID bodyID)
+{
+	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
+	const BodyID *bid = static_cast<const BodyID *>(bodyID);
+
+	bi->ActivateBody(*bid);
+}
+
+void JoltDeactivateBody(JoltBodyInterface bodyInterface, JoltBodyID bodyID)
+{
+	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
+	const BodyID *bid = static_cast<const BodyID *>(bodyID);
+
+	bi->DeactivateBody(*bid);
+}
+
 void JoltDestroyBodyID(JoltBodyID bodyID)
 {
 	BodyID *bid = static_cast<BodyID *>(bodyID);

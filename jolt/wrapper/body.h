@@ -18,6 +18,13 @@ typedef void* JoltBodyInterface;
 typedef void* JoltBodyID;
 typedef void* JoltShape;
 
+// Motion type enum (matches Jolt's EMotionType)
+typedef enum {
+    JoltMotionTypeStatic = 0,    // Immovable, zero velocity
+    JoltMotionTypeKinematic = 1, // Movable by user, zero velocity response to forces
+    JoltMotionTypeDynamic = 2    // Affected by forces
+} JoltMotionType;
+
 // Get the body interface for creating/manipulating bodies
 JoltBodyInterface JoltPhysicsSystemGetBodyInterface(JoltPhysicsSystem system);
 
@@ -26,12 +33,30 @@ void JoltGetBodyPosition(const JoltBodyInterface bodyInterface,
                         const JoltBodyID bodyID,
                         float* x, float* y, float* z);
 
+// Set the position of a body
+void JoltSetBodyPosition(JoltBodyInterface bodyInterface,
+                        JoltBodyID bodyID,
+                        float x, float y, float z);
+
 // Create a body from a shape
 // isDynamic: 1 = dynamic (affected by forces), 0 = static (immovable)
 JoltBodyID JoltCreateBody(JoltBodyInterface bodyInterface,
                           JoltShape shape,
                           float x, float y, float z,
                           int isDynamic);
+
+// Create a body with specific motion type
+JoltBodyID JoltCreateBodyWithMotionType(JoltBodyInterface bodyInterface,
+                                        JoltShape shape,
+                                        float x, float y, float z,
+                                        JoltMotionType motionType,
+                                        int isSensor);
+
+// Activate a body (makes it participate in simulation)
+void JoltActivateBody(JoltBodyInterface bodyInterface, JoltBodyID bodyID);
+
+// Deactivate a body (removes from active simulation)
+void JoltDeactivateBody(JoltBodyInterface bodyInterface, JoltBodyID bodyID);
 
 // Destroy a body ID
 void JoltDestroyBodyID(JoltBodyID bodyID);
