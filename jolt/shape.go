@@ -166,3 +166,86 @@ func boolToInt(b bool) int {
 	}
 	return 0
 }
+
+// TransformedShape combines a shape with a position and rotation for world-space operations
+// like raycasting without needing a full Body
+type TransformedShape struct {
+	handle C.JoltTransformedShape
+}
+
+// CreateTransformedShape creates a transformed shape with the given shape, position, rotation, and optional body ID
+// This allows raycasting directly in world space without needing a Body
+//
+// Example:
+//
+//	shape := jolt.CreateSphere(1.0)
+//	defer shape.Destroy()
+//
+//	pos := jolt.Vec3{X: 0, Y: 5, Z: 0}
+//	rot := jolt.Quat{X: 0, Y: 0, Z: 0, W: 1}
+//
+//	transformedShape := jolt.CreateTransformedShape(shape, pos, rot, 0)
+//	defer transformedShape.Destroy()
+//
+//	ray := jolt.RRayCast{
+//	    Origin:    jolt.Vec3{X: 0, Y: 10, Z: 0},
+//	    Direction: jolt.Vec3{X: 0, Y: -20, Z: 0},
+//	}
+//	result := jolt.RayCastResult{}
+//	if transformedShape.CastRay(ray, &result) {
+//	    fmt.Printf("Hit at fraction: %f\n", result.Fraction)
+//	}
+func CreateTransformedShape(shape *Shape, position Vec3, rotation Quat, bodyID uint32) *TransformedShape {
+	handle := C.JoltCreateTransformedShape(
+		shape.handle,
+		C.float(position.X),
+		C.float(position.Y),
+		C.float(position.Z),
+		C.float(rotation.X),
+		C.float(rotation.Y),
+		C.float(rotation.Z),
+		C.float(rotation.W),
+		C.uint(bodyID),
+	)
+	return &TransformedShape{handle: handle}
+}
+
+// Destroy frees the transformed shape
+func (ts *TransformedShape) Destroy() {
+	C.JoltDestroyTransformedShape(ts.handle)
+}
+
+// CastRay casts a ray against this transformed shape in world space and returns the hit result
+// Returns true if the ray hit the shape, false otherwise
+//
+// Example:
+//
+//	ray := jolt.RRayCast{
+//	    Origin:    jolt.Vec3{X: 0, Y: 10, Z: 0},
+//	    Direction: jolt.Vec3{X: 0, Y: -20, Z: 0},
+//	}
+//	result := jolt.RayCastResult{}
+//	if transformedShape.CastRay(ray, &result) {
+//	    hitDistance := result.Fraction * 20.0 // Distance along ray
+//	    fmt.Printf("Hit at distance: %f\n", hitDistance)
+//	}
+func (ts *TransformedShape) CastRay(ray RRayCast, result *RayCastResult) bool {
+	var cFraction C.float
+
+	hit := C.JoltTransformedShapeCastRay(
+		ts.handle,
+		C.float(ray.Origin.X),
+		C.float(ray.Origin.Y),
+		C.float(ray.Origin.Z),
+		C.float(ray.Direction.X),
+		C.float(ray.Direction.Y),
+		C.float(ray.Direction.Z),
+		&cFraction,
+	)
+
+	if hit != 0 {
+		result.Fraction = float32(cFraction)
+		return true
+	}
+	return false
+}

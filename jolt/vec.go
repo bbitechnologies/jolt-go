@@ -41,3 +41,13 @@ func (v Vec3) Normalize() Vec3 {
 	}
 	return Vec3{X: v.X / length, Y: v.Y / length, Z: v.Z / length}
 }
+
+// Quat represents a quaternion for rotations
+type Quat struct {
+	X, Y, Z, W float32
+}
+
+// Identity returns an identity quaternion (no rotation)
+func QuatIdentity() Quat {
+	return Quat{X: 0, Y: 0, Z: 0, W: 1}
+}

@@ -11,8 +11,9 @@
 extern "C" {
 #endif
 
-// Opaque pointer type
+// Opaque pointer types
 typedef void* JoltShape;
+typedef void* JoltTransformedShape;
 
 // Create a sphere shape
 JoltShape JoltCreateSphere(float radius);
@@ -41,6 +42,24 @@ int JoltShapeCastRay(JoltShape shape,
                      float directionX, float directionY, float directionZ,
                      int backfaceMode, int treatConvexAsSolid,
                      float* outFraction);
+
+// Create a transformed shape (combines shape with position and rotation)
+// bodyID: use 0 if no associated body
+JoltTransformedShape JoltCreateTransformedShape(JoltShape shape,
+                                                 float posX, float posY, float posZ,
+                                                 float rotX, float rotY, float rotZ, float rotW,
+                                                 unsigned int bodyID);
+
+// Destroy a transformed shape
+void JoltDestroyTransformedShape(JoltTransformedShape transformedShape);
+
+// Cast a ray against a transformed shape in world space
+// Returns 1 if hit, 0 if miss
+// outFraction: receives the fraction along the ray where the hit occurred [0, 1]
+int JoltTransformedShapeCastRay(JoltTransformedShape transformedShape,
+                                 float originX, float originY, float originZ,
+                                 float directionX, float directionY, float directionZ,
+                                 float* outFraction);
 
 #ifdef __cplusplus
 }

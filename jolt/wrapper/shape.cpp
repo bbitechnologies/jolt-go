@@ -12,6 +12,7 @@
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/Shape/SubShapeID.h>
+#include <Jolt/Physics/Collision/TransformedShape.h>
 
 using namespace JPH;
 
@@ -123,6 +124,52 @@ int JoltShapeCastRay(JoltShape shape,
 	// Cast the ray
 	RayCastResult result;
 	if (s->CastRay(ray, sub_shape_creator, result)) {
+		*outFraction = result.mFraction;
+		return 1; // Hit
+	}
+
+	return 0; // No hit
+}
+
+JoltTransformedShape JoltCreateTransformedShape(JoltShape shape,
+                                                 float posX, float posY, float posZ,
+                                                 float rotX, float rotY, float rotZ, float rotW,
+                                                 unsigned int bodyID)
+{
+	Shape* s = static_cast<Shape*>(shape);
+	if (!s) return nullptr;
+
+	// Create a TransformedShape on the heap
+	TransformedShape* ts = new TransformedShape(
+		RVec3(posX, posY, posZ),
+		Quat(rotX, rotY, rotZ, rotW),
+		s,
+		BodyID(bodyID)
+	);
+
+	return static_cast<JoltTransformedShape>(ts);
+}
+
+void JoltDestroyTransformedShape(JoltTransformedShape transformedShape)
+{
+	TransformedShape* ts = static_cast<TransformedShape*>(transformedShape);
+	delete ts;
+}
+
+int JoltTransformedShapeCastRay(JoltTransformedShape transformedShape,
+                                 float originX, float originY, float originZ,
+                                 float directionX, float directionY, float directionZ,
+                                 float* outFraction)
+{
+	TransformedShape* ts = static_cast<TransformedShape*>(transformedShape);
+	if (!ts) return 0;
+
+	// Create the ray (RRayCast for double precision)
+	RRayCast ray(RVec3(originX, originY, originZ), Vec3(directionX, directionY, directionZ));
+
+	// Cast the ray
+	RayCastResult result;
+	if (ts->CastRay(ray, result)) {
 		*outFraction = result.mFraction;
 		return 1; // Hit
 	}
