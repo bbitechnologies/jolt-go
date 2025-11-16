@@ -44,14 +44,33 @@ func (bi *BodyInterface) GetPosition(bodyID *BodyID) Vec3 {
 	}
 }
 
-// CreateBody creates a body from a shape
-// shape: the collision shape
-// position: initial position
-// isDynamic: true = affected by forces, false = static/immovable
-func (bi *BodyInterface) CreateBody(shape *Shape, position Vec3, isDynamic bool) *BodyID {
-	dynamic := C.int(0)
-	if isDynamic {
-		dynamic = C.int(1)
+// CreateBody creates a body with specific motion type and sensor flag.
+//
+// Parameters:
+//   - shape: The collision shape
+//   - position: Initial position
+//   - motionType: MotionTypeStatic, MotionTypeKinematic, or MotionTypeDynamic
+//   - isSensor: If true, body is detected by queries but doesn't generate contact forces
+//
+// Examples:
+//
+//	// Create static ground
+//	box := jolt.CreateBox(jolt.Vec3{X: 10, Y: 0.5, Z: 10})
+//	ground := bi.CreateBody(box, jolt.Vec3{X: 0, Y: 0, Z: 0}, jolt.MotionTypeStatic, false)
+//
+//	// Create dynamic sphere
+//	sphere := jolt.CreateSphere(1.0)
+//	ball := bi.CreateBody(sphere, jolt.Vec3{X: 0, Y: 10, Z: 0}, jolt.MotionTypeDynamic, false)
+//	bi.ActivateBody(ball)
+//
+//	// Create kinematic sensor
+//	capsule := jolt.CreateCapsule(0.5, 1.8)
+//	sensor := bi.CreateBody(capsule, jolt.Vec3{X: 0, Y: 1, Z: 0}, jolt.MotionTypeKinematic, true)
+//	bi.ActivateBody(sensor)
+func (bi *BodyInterface) CreateBody(shape *Shape, position Vec3, motionType MotionType, isSensor bool) *BodyID {
+	sensor := C.int(0)
+	if isSensor {
+		sensor = C.int(1)
 	}
 
 	handle := C.JoltCreateBody(
@@ -60,15 +79,11 @@ func (bi *BodyInterface) CreateBody(shape *Shape, position Vec3, isDynamic bool)
 		C.float(position.X),
 		C.float(position.Y),
 		C.float(position.Z),
-		dynamic,
+		C.JoltMotionType(motionType),
+		sensor,
 	)
 
 	return &BodyID{handle: handle}
-}
-
-// CreateStaticBody creates a static (immovable) body from a shape
-func (bi *BodyInterface) CreateStaticBody(shape *Shape, position Vec3) *BodyID {
-	return bi.CreateBody(shape, position, false)
 }
 
 // SetPosition updates the position of a body
@@ -80,45 +95,6 @@ func (bi *BodyInterface) SetPosition(bodyID *BodyID, position Vec3) {
 		C.float(position.Y),
 		C.float(position.Z),
 	)
-}
-
-// CreateBodyWithMotionType creates a body with specific motion type and sensor flag.
-// This is useful for creating kinematic sensor bodies that are detected by raycasts
-// but don't participate in collision resolution.
-//
-// Parameters:
-//   - shape: The collision shape
-//   - position: Initial position
-//   - motionType: MotionTypeStatic, MotionTypeKinematic, or MotionTypeDynamic
-//   - isSensor: If true, body is detected by queries but doesn't generate contact forces
-//
-// Example - Create kinematic sensor for player detection:
-//
-//	capsule := jolt.CreateCapsule(0.5, 1.8)
-//	sensorBody := bi.CreateBodyWithMotionType(
-//	    capsule,
-//	    jolt.Vec3{X: 0, Y: 1, Z: 0},
-//	    jolt.MotionTypeKinematic,
-//	    true,  // isSensor
-//	)
-//	bi.ActivateBody(sensorBody)
-func (bi *BodyInterface) CreateBodyWithMotionType(shape *Shape, position Vec3, motionType MotionType, isSensor bool) *BodyID {
-	sensor := C.int(0)
-	if isSensor {
-		sensor = C.int(1)
-	}
-
-	handle := C.JoltCreateBodyWithMotionType(
-		bi.handle,
-		shape.handle,
-		C.float(position.X),
-		C.float(position.Y),
-		C.float(position.Z),
-		C.JoltMotionType(motionType),
-		sensor,
-	)
-
-	return &BodyID{handle: handle}
 }
 
 // ActivateBody makes a body participate in the simulation

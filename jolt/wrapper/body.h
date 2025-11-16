@@ -38,19 +38,12 @@ void JoltSetBodyPosition(JoltBodyInterface bodyInterface,
                         JoltBodyID bodyID,
                         float x, float y, float z);
 
-// Create a body from a shape
-// isDynamic: 1 = dynamic (affected by forces), 0 = static (immovable)
+// Create a body with specific motion type and sensor flag
 JoltBodyID JoltCreateBody(JoltBodyInterface bodyInterface,
                           JoltShape shape,
                           float x, float y, float z,
-                          int isDynamic);
-
-// Create a body with specific motion type
-JoltBodyID JoltCreateBodyWithMotionType(JoltBodyInterface bodyInterface,
-                                        JoltShape shape,
-                                        float x, float y, float z,
-                                        JoltMotionType motionType,
-                                        int isSensor);
+                          JoltMotionType motionType,
+                          int isSensor);
 
 // Activate a body (makes it participate in simulation)
 void JoltActivateBody(JoltBodyInterface bodyInterface, JoltBodyID bodyID);

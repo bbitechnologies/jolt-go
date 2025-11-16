@@ -42,29 +42,6 @@ void JoltGetBodyPosition(const JoltBodyInterface bodyInterface,
 	*z = static_cast<float>(pos.GetZ());
 }
 
-JoltBodyID JoltCreateBody(JoltBodyInterface bodyInterface,
-						  JoltShape shape,
-						  float x, float y, float z,
-						  int isDynamic)
-{
-	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
-	const Shape *s = static_cast<const Shape *>(shape);
-
-	BodyCreationSettings body_settings(
-		s,
-		RVec3(x, y, z),
-		Quat::sIdentity(),
-		isDynamic ? EMotionType::Dynamic : EMotionType::Static,
-		isDynamic ? Layers::MOVING : Layers::NON_MOVING);
-
-	Body *body = bi->CreateBody(body_settings);
-	bi->AddBody(body->GetID(), EActivation::Activate);
-
-	// Use smart pointer for exception safety, then release to caller
-	auto bodyIDPtr = std::make_unique<BodyID>(body->GetID());
-	return static_cast<JoltBodyID>(bodyIDPtr.release());
-}
-
 void JoltSetBodyPosition(JoltBodyInterface bodyInterface,
 						 JoltBodyID bodyID,
 						 float x, float y, float z)
@@ -75,11 +52,11 @@ void JoltSetBodyPosition(JoltBodyInterface bodyInterface,
 	bi->SetPosition(*bid, RVec3(x, y, z), EActivation::DontActivate);
 }
 
-JoltBodyID JoltCreateBodyWithMotionType(JoltBodyInterface bodyInterface,
-										JoltShape shape,
-										float x, float y, float z,
-										JoltMotionType motionType,
-										int isSensor)
+JoltBodyID JoltCreateBody(JoltBodyInterface bodyInterface,
+						  JoltShape shape,
+						  float x, float y, float z,
+						  JoltMotionType motionType,
+						  int isSensor)
 {
 	BodyInterface *bi = static_cast<BodyInterface *>(bodyInterface);
 	const Shape *s = static_cast<const Shape *>(shape);

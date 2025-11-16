@@ -149,9 +149,11 @@ func main() {
 		jolt.Vec3{X: 10, Y: 0.5, Z: 10}, // half-extents (creates 20x1x20 box)
 	)
 	defer box.Destroy()
-	platform := bi.CreateStaticBody(
+	platform := bi.CreateBody(
 		box,
 		jolt.Vec3{X: 0, Y: 0, Z: 0}, // position
+		jolt.MotionTypeStatic,
+		false, // not a sensor
 	)
 	defer platform.Destroy()
 
